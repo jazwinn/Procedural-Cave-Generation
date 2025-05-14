@@ -1,7 +1,8 @@
 #pragma once
 
 #include "window.h"
-#include "../Graphics/GraphicPipeline.h"
+#include "GraphicPipeline.h"
+#include "ImguiHandler.h"
 
 namespace app{
 	class App
@@ -16,6 +17,7 @@ namespace app{
 
 		window::Window m_window;
 		graphic::GraphicPipeline m_graphicPipeline;
+		imgui::ImguiHandler m_imgui;
 
 	};
 

@@ -119,12 +119,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Graphics;$(SolutionDir)Imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;glfw3dll.lib;glew32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\glfw\lib-vc2022;$(SolutionDir)Dependencies\glew\lib\Release\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\glfw\lib-vc2022;$(SolutionDir)Dependencies\glew\lib\Release\x64;$(SolutionDir)Dependencies\imgui;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -136,14 +138,15 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Graphics;$(SolutionDir)Imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\glfw\lib-vc2022;$(SolutionDir)Dependencies\glew\lib\Release\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;glfw3dll.lib;glew32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\glfw\lib-vc2022;$(SolutionDir)Dependencies\glew\lib\Release\x64;$(SolutionDir)Dependencies\imgui;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -156,6 +159,7 @@
     <ClCompile Include="Graphics\VBO.cpp" />
     <ClCompile Include="Graphics\VAO.cpp" />
     <ClCompile Include="Graphics\Texture.cpp" />
+    <ClCompile Include="Imgui\ImguiHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application\App.h" />
@@ -166,6 +170,7 @@
     <ClInclude Include="Graphics\VBO.h" />
     <ClInclude Include="Graphics\VAO.h" />
     <ClInclude Include="Graphics\Texture.h" />
+    <ClInclude Include="Imgui\ImguiHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Graphics\Shaders\genericFragmentShader.frag" />

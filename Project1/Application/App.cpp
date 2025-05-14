@@ -7,7 +7,7 @@
 
 
 namespace app {
-	App::App() :m_window{}, m_graphicPipeline{}
+	App::App() :m_window{}, m_graphicPipeline{}, m_imgui(m_window.m_window, "#version 130")
 	{
 
 	}
@@ -116,6 +116,10 @@ namespace app {
 			shaderprogram.setUniform("view", view);
 			shaderprogram.setUniform("projection", projection);
 
+			// UPDATE
+
+			m_imgui.Update();
+
 			// DRAW
 
 			shaderprogram.Activate();
@@ -132,6 +136,7 @@ namespace app {
 						* strip)); // offset to starting index
 			}
 
+			m_imgui.Render();
 
 			glfwSwapBuffers(m_window.m_window);
 		}
