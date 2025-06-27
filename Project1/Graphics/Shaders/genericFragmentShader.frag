@@ -2,11 +2,10 @@
 
 out vec4 FragColor;
 
-in float yColor;
+uniform vec4 uniform_color;
 
 void main(){
 
-	float normalizedY = clamp(yColor, 0.0, 1.0);
-	FragColor = vec4(vec3(normalizedY), 1.0);
+	FragColor = uniform_color;
 
 }

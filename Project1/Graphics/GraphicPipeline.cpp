@@ -1,84 +1,95 @@
 #include "GraphicPipeline.h"
-
+#include <stb_image.h>
 
 #include <algorithm>
 
 namespace graphic{
 	
-
-
-	GraphicPipeline::GraphicPipeline()
+	void sizeCallback(GLFWwindow* pWindow, int width, int height)
 	{
+		glViewport(0,0,width,height);
+		auto* pipeline = static_cast<GraphicPipeline*>(glfwGetWindowUserPointer(pWindow));
+		if (pipeline)
+			pipeline->Get_Camera().Resize(width, height);
+	}
 
-		//// for test
-		//GLfloat vertices[] =
-		//{ //     COORDINATES     /        COLORS      /   TexCoord  //
-		//	-0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Lower left corner
-		//	-0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,	0.0f, 1.0f, // Upper left corner
-		//	 0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,	1.0f, 1.0f, // Upper right corner
-		//	 0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,	1.0f, 0.0f  // Lower right corner
-		//};
-
-		//// Indices for vertices order
-		//GLuint indices[] =
-		//{
-		//	0, 2, 1, // Upper triangle
-		//	0, 3, 2 // Lower triangle
-		//};
-
-		//Shader shaderprogram("./Graphics/Shaders/genericVertexShader.vert", "./Graphics/Shaders/genericFragmentShader.frag");
-
-		//VAO VAO1;
-		//VAO1.Bind();
-
-		//VBO VBO1(vertices, sizeof(vertices));
-		//EBO EBO1(indices, sizeof(indices));
-
-		//VAO1.LinkAttribute(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(GLfloat), (void*)0);
-		//VAO1.LinkAttribute(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-		//VAO1.LinkAttribute(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
-
-
-		//VAO1.Unbind();
-		//VBO1.Unbind();
-		//EBO1.Unbind();
-
-
-		//vec_EBO.emplace_back(EBO1);
-		//vec_VAO.emplace_back(VAO1);
-		//vec_VBO.emplace_back(VBO1);
-		//vec_Shader.emplace_back(shaderprogram);
-
-		//Texture rombatex("./Assets/Texture/image.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
-		//rombatex.texUnit(shaderprogram, "tex0", 0);
-
-		//vec_Texture.emplace_back(rombatex);
-
-
+	GraphicPipeline::GraphicPipeline(window::Window& window):
+		m_shaderProgram("./Graphics/Shaders/genericVertexShader.vert", "./Graphics/Shaders/genericFragmentShader.frag"),
+		m_window{window},
+		m_Shapes{m_shaderProgram},
+		m_camera(m_window.getWindowWidth(), m_window.getWindowHeigth())
+	{
+		//Callbacks
+		glfwSetWindowUserPointer(window.window, this);
+		glfwSetWindowSizeCallback(window.window, sizeCallback);
 		
-
 	}
 
 	GraphicPipeline::~GraphicPipeline()
 	{
-		//std::for_each(vec_VAO.begin(), vec_VAO.end(), [](auto x) { x.Delete(); });
-		//std::for_each(vec_VBO.begin(), vec_VBO.end(), [](auto x) { x.Delete(); });
-		//std::for_each(vec_EBO.begin(), vec_EBO.end(), [](auto x) { x.Delete(); });
-		//std::for_each(vec_Texture.begin(), vec_Texture.end(), [](auto x) { x.Delete(); });
-		//std::for_each(vec_Shader.begin(), vec_Shader.end(), [](auto x) { x.Delete(); });
+		m_shaderProgram.Delete();
+	}
+
+	void GraphicPipeline::Update(float dt)
+	{
+		int display_w = 0;
+		int display_h = 0;
+		glfwGetFramebufferSize(m_window.window, &display_w, &display_h);
+
+		double cursor_x = 0.0;
+		double cursor_y = 0.0;
+		glfwGetCursorPos(m_window.window, &cursor_x, &cursor_y);
+
+		if (glfwGetMouseButton(m_window.window, GLFW_MOUSE_BUTTON_2) != 0) {
+			auto side = glm::normalize(glm::cross(m_camera.direction, { 0, 1, 0 }));
+			auto up = glm::normalize(glm::cross(m_camera.direction, side));
+
+			float speed = 10.0f;
+			if (glfwGetKey(m_window.window, GLFW_KEY_W) != 0) {
+				m_camera.SetPosition(m_camera.GetPosition() + glm::normalize(m_camera.direction) * dt * speed);
+			}
+			if (glfwGetKey(m_window.window, GLFW_KEY_S) != 0) {
+				m_camera.SetPosition(m_camera.GetPosition() - glm::normalize(m_camera.direction) * dt * speed);
+			}
+			if (glfwGetKey(m_window.window, GLFW_KEY_A) != 0) {
+				m_camera.SetPosition(m_camera.GetPosition() - glm::normalize(side) * dt * speed);
+			}
+			if (glfwGetKey(m_window.window, GLFW_KEY_D) != 0) {
+				m_camera.SetPosition(m_camera.GetPosition() + glm::normalize(side) * dt * speed);
+			}
+			if (glfwGetKey(m_window.window, GLFW_KEY_SPACE) != 0) {
+				m_camera.SetPosition(m_camera.GetPosition() - glm::normalize(up) * dt * speed);
+			}
+			if (glfwGetKey(m_window.window, GLFW_KEY_LEFT_CONTROL) != 0) {
+				m_camera.SetPosition(m_camera.GetPosition() + glm::normalize(up) * dt * speed);
+			}
+			glm::vec2 cursor_delta = { (float)cursor_x - m_camera.prevMouseCursor.x, (float)cursor_y - m_camera.prevMouseCursor.y };
+			float     rotation_speed = 0.01f;
+			m_camera.direction = glm::vec3(glm::vec4(m_camera.direction, 0) * glm::rotate(glm::mat4(1.0f), cursor_delta.y * rotation_speed, side));
+			m_camera.direction = glm::vec3(glm::vec4(m_camera.direction, 0) * glm::rotate(glm::mat4(1.0f), cursor_delta.x * rotation_speed, glm::vec3(0, 1, 0)));
+
+		}
+
+
+
+		m_camera.UpdateProjection();
+		m_camera.UpdateView();
+		m_camera.UpdateViewProjection();
+		m_camera.prevMouseCursor = glm::vec2{cursor_x, cursor_y};
+
+
+
 	}
 
 	void GraphicPipeline::Draw()
 	{
+		glEnable(GL_DEPTH_TEST);
+		m_shaderProgram.Activate();
 
-		//vec_Shader[0].Activate();
 
-		//vec_Shader[0].setUniform("scale", 0.5f);
 
-		//vec_Texture[0].Bind();
-		//vec_VAO[0].Bind();
-
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // 9 refering to number of indices
+		m_Shapes.Draw_Rectangle(m_camera.GetViewProjectionMatrix(), glm::vec3{0,-15,-10}, glm::vec3{10,10,10}, glm::vec4{1,1,1,1}, DrawType::WIREFRAME);
+		
 
 		
 

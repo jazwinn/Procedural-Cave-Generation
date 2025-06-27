@@ -2,13 +2,9 @@
 
 layout (location = 0) in vec3 aPos;
 
-out float yColor;
-
-uniform mat4 view;
-uniform mat4 projection;
+uniform mat4 uniform_m2w;
 
 void main() {
 
-    gl_Position = projection * view * vec4(aPos, 1.0);
-    yColor = aPos.y;
+    gl_Position = uniform_m2w * vec4(aPos, 1.0);
 }

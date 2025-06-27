@@ -1,0 +1,28 @@
+#pragma once
+
+#include <memory>
+#include "Mesh.h"
+#include "Shader.h"
+#include <glm/gtc/matrix_transform.hpp>
+
+enum DrawType {
+	FILLED,
+	WIREFRAME,
+	FILLEDWIREFRAME
+};
+
+
+class Shapes
+{
+public:
+	Shapes(Shader& shader);
+	void Draw_Rectangle(const glm::mat4& vp, const glm::vec3 center, const glm::vec3 scale, const glm::vec4& color, DrawType drawtype = FILLED);
+
+
+private:
+
+	Shader& m_Shader;
+	
+	std::unique_ptr<Mesh> m_RectangleMesh;
+};
+

@@ -21,7 +21,7 @@ namespace window {
 
 	public:
 
-		GLFWwindow* m_window;
+		GLFWwindow* window;
 
 	};
 }

@@ -6,6 +6,7 @@
 class EBO
 {
 public:
+	EBO() = default;
 
 	EBO(GLuint* indices, GLsizeiptr size);
 

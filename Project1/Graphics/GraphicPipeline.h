@@ -1,10 +1,15 @@
 #pragma once
 
+#include "window.h"
 #include "Shader.h"
 #include "Texture.h"
 #include "VAO.h"
 #include "VBO.h"
 #include "EBO.h"
+#include "Shapes.h"
+#include "Camera.h"
+#include <glm/gtc/matrix_transform.hpp>
+
 
 #include <vector>
 
@@ -12,18 +17,23 @@ namespace graphic {
 	class GraphicPipeline
 	{
 	public:
-		GraphicPipeline();
+		GraphicPipeline(window::Window& window);
 		~GraphicPipeline();
 		
+		
+		void Update(float dt);
 		void Draw();
+
+		Camera& Get_Camera() { return m_camera; }
 	
 	private:
 
-		std::vector<Shader> vec_Shader;
-		std::vector<VAO> vec_VAO;
-		std::vector<VBO> vec_VBO;
-		std::vector<EBO> vec_EBO;
-		std::vector<Texture> vec_Texture;
+		Shader m_shaderProgram;
+		window::Window& m_window;
+		Shapes m_Shapes;
+		Camera m_camera;
+		
+
 	};
 }
 
