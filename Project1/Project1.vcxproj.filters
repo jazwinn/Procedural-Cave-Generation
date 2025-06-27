@@ -98,5 +98,7 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="Graphics\Shaders\genericFragmentShader.frag" />
+    <None Include="Graphics\Shaders\instancedFragmentShader.frag" />
+    <None Include="Graphics\Shaders\instancedVertexShader.vert" />
   </ItemGroup>
 </Project>

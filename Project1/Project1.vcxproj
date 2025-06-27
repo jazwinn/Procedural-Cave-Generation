@@ -181,6 +181,8 @@
   <ItemGroup>
     <None Include="Graphics\Shaders\genericFragmentShader.frag" />
     <None Include="Graphics\Shaders\genericVertexShader.vert" />
+    <None Include="Graphics\Shaders\instancedFragmentShader.frag" />
+    <None Include="Graphics\Shaders\instancedVertexShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

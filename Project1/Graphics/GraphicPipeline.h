@@ -28,7 +28,8 @@ namespace graphic {
 	
 	private:
 
-		Shader m_shaderProgram;
+		Shader m_genericShader;
+		Shader m_InstancedShader;
 		window::Window& m_window;
 		Shapes m_Shapes;
 		Camera m_camera;

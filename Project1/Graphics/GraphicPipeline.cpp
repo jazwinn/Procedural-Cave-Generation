@@ -14,9 +14,10 @@ namespace graphic{
 	}
 
 	GraphicPipeline::GraphicPipeline(window::Window& window):
-		m_shaderProgram("./Graphics/Shaders/genericVertexShader.vert", "./Graphics/Shaders/genericFragmentShader.frag"),
+		m_genericShader("./Graphics/Shaders/genericVertexShader.vert", "./Graphics/Shaders/genericFragmentShader.frag"),
+		m_InstancedShader("./Graphics/Shaders/instancedVertexShader.vert", "./Graphics/Shaders/instancedFragmentShader.frag"),
 		m_window{window},
-		m_Shapes{m_shaderProgram},
+		m_Shapes{m_genericShader},
 		m_camera(m_window.getWindowWidth(), m_window.getWindowHeigth())
 	{
 		//Callbacks
@@ -27,7 +28,7 @@ namespace graphic{
 
 	GraphicPipeline::~GraphicPipeline()
 	{
-		m_shaderProgram.Delete();
+		m_genericShader.Delete();
 	}
 
 	void GraphicPipeline::Update(float dt)
@@ -83,16 +84,19 @@ namespace graphic{
 
 	void GraphicPipeline::Draw()
 	{
+		glEnable(GL_SCISSOR_TEST);
 		glEnable(GL_DEPTH_TEST);
-		m_shaderProgram.Activate();
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
 
 
+		m_InstancedShader.Activate();
+		m_Shapes.Draw_InstancedCubes(m_camera.GetViewProjectionMatrix(), glm::vec4{ 1,0,0,1 }, DrawType::FILLEDWIREFRAME);
 
-		m_Shapes.Draw_Rectangle(m_camera.GetViewProjectionMatrix(), glm::vec3{0,-15,-10}, glm::vec3{10,10,10}, glm::vec4{1,1,1,1}, DrawType::WIREFRAME);
 		
-
-		
-
+		m_genericShader.Activate();
+		m_Shapes.Draw_Rectangle(m_camera.GetViewProjectionMatrix(), glm::vec3{ 0,0,0 }, glm::vec3{ 10,10,10 }, glm::vec4{ 1,1,1,1 }, DrawType::WIREFRAME);
 	}
 
 }
