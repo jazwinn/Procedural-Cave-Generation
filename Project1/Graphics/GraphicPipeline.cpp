@@ -17,13 +17,14 @@ namespace graphic{
 		m_genericShader("./Graphics/Shaders/genericVertexShader.vert", "./Graphics/Shaders/genericFragmentShader.frag"),
 		m_InstancedShader("./Graphics/Shaders/instancedVertexShader.vert", "./Graphics/Shaders/instancedFragmentShader.frag"),
 		m_window{window},
-		m_Shapes{m_genericShader},
+		m_Shapes{m_genericShader, m_InstancedShader},
+		m_voxel{ m_InstancedShader },
 		m_camera(m_window.getWindowWidth(), m_window.getWindowHeigth())
 	{
 		//Callbacks
 		glfwSetWindowUserPointer(window.window, this);
 		glfwSetWindowSizeCallback(window.window, sizeCallback);
-		
+
 	}
 
 	GraphicPipeline::~GraphicPipeline()
@@ -90,12 +91,10 @@ namespace graphic{
 		glCullFace(GL_BACK);
 		glFrontFace(GL_CCW);
 
+		//INSTANCED
+		m_voxel.DrawVoxel(m_camera.GetViewProjectionMatrix(), glm::vec4{ 1,0,0,1 }, GL_LINES);
 
-		m_InstancedShader.Activate();
-		m_Shapes.Draw_InstancedCubes(m_camera.GetViewProjectionMatrix(), glm::vec4{ 1,0,0,1 }, DrawType::FILLEDWIREFRAME);
-
-		
-		m_genericShader.Activate();
+		//SINGLE
 		m_Shapes.Draw_Rectangle(m_camera.GetViewProjectionMatrix(), glm::vec3{ 0,0,0 }, glm::vec3{ 10,10,10 }, glm::vec4{ 1,1,1,1 }, DrawType::WIREFRAME);
 	}
 

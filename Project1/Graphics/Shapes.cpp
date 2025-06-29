@@ -1,10 +1,11 @@
 #include "Shapes.h"
 
-Shapes::Shapes(Shader& shader):
-	m_Shader(shader)
+Shapes::Shapes(Shader& shader, Shader& instancedShader):
+	m_Shader(shader),
+	m_InstancedShader(instancedShader)
 {
 
-	std::vector<GLfloat> vertices =
+	std::vector<GLfloat> verticesRect =
 	{
 		-0.5, -0.5, -0.5 ,
 		 -0.5, -0.5, 0.5 ,
@@ -16,7 +17,7 @@ Shapes::Shapes(Shader& shader):
 		 0.5, 0.5, 0.5 ,
 	};
 
-	std::vector<GLuint> indices = {
+	std::vector<GLuint> indicesRect = {
 		0, 1, 
 		0, 2, 
 		0, 4, 
@@ -33,33 +34,39 @@ Shapes::Shapes(Shader& shader):
 
 
 
-	m_RectangleMesh = std::make_unique<Mesh>(vertices, indices);
+	m_RectangleMesh = std::make_unique<Mesh>(verticesRect, indicesRect);
 
-	std::vector<Instance> transforms;
-
-	const int gridSize = 10;
-	float scaleFactor = 0.1f; // Scale factor for the cubes
-
-	glm::vec3 scale = glm::vec3(scaleFactor); // Scale for each cube
-	glm::vec3 center = glm::vec3(0.f, 0.f, 0.f); // Center of the grid
-	glm::vec3 offset = - glm::vec3(gridSize / 2.f) + glm::vec3(scaleFactor/2.f);
-
-	for (float x = 0.f; x < gridSize; x += scaleFactor) {
-		for (float y = 0.f; y < gridSize; y += scaleFactor) {
-			for (float z = 0.f; z < gridSize; z += scaleFactor) {
-				
-				glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z) + offset) * glm::scale(glm::mat4(1.0f), scale);
-				transforms.emplace_back(model, 1.f);
-			}
-		}
-	}
+	std::vector<GLfloat> verticesQuad = {
+		-0.5f, -0.5f, 0.0f,  
+		 0.5f, -0.5f, 0.0f,  
+		 0.5f,  0.5f, 0.0f,  
+		-0.5f,  0.5f, 0.0f   
+	};
 
 
-	m_InstancedCube = std::make_unique<Mesh>(vertices, indices, transforms.size(), transforms);
+	std::vector<GLuint> indicesQuad = {
+    0, 1, 2, 
+	2, 3, 0 
+	};
+
+	m_QuadMesh = std::make_unique<Mesh>(verticesQuad, indicesQuad);
+
+	std::vector<GLfloat> lineVertices = {
+	0.0f, 0.0f, 0.0f,  
+	1.0f, 1.0f, 1.0f   
+	};
+
+	std::vector<GLuint> lineIndices = {
+		0, 1
+	};
+
+	m_LineMesh = std::make_unique<Mesh>(lineVertices, lineIndices);
+
 }
 
 void Shapes::Draw_Rectangle(const glm::mat4& vp, const glm::vec3 center, const glm::vec3 scale, const glm::vec4& color, const DrawType drawtype, const glm::vec4& wireFrameColor )
 {
+	m_Shader.Activate();
 	glm::mat4 model = glm::translate(glm::mat4(1.0f), center) * glm::scale(glm::mat4(1.0f), scale);
 
 	glm::mat4 m2w = vp * model;
@@ -75,7 +82,7 @@ void Shapes::Draw_Rectangle(const glm::mat4& vp, const glm::vec3 center, const g
 		m_RectangleMesh->Draw(GL_TRIANGLE_FAN);
 		break;
 	case WIREFRAME:
-		glDisable(GL_DEPTH_TEST);
+
 		m_RectangleMesh->Draw(GL_LINES);
 		break;
 	case FILLEDWIREFRAME:
@@ -92,11 +99,59 @@ void Shapes::Draw_Rectangle(const glm::mat4& vp, const glm::vec3 center, const g
 
 }
 
+void Shapes::Draw_Quad(const glm::mat4& vp, const glm::vec3 center, const glm::vec3 scale, const glm::vec4& color, DrawType drawtype, const glm::vec4& wireFrameColor)
+{
+	m_Shader.Activate();
+	glm::mat4 model = glm::translate(glm::mat4(1.0f), center) * glm::scale(glm::mat4(1.0f), scale);
+
+	glm::mat4 m2w = vp * model;
+
+	m_Shader.setUniform("uniform_m2w", m2w);
+	m_Shader.setUniform("uniform_color", color);
+
+
+	switch (drawtype)
+	{
+	case FILLED:
+
+		m_QuadMesh->Draw(GL_TRIANGLES);
+		break;
+	case WIREFRAME:
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		m_QuadMesh->Draw(GL_LINES);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		
+		break;
+	case FILLEDWIREFRAME:
+		m_QuadMesh->Draw(GL_TRIANGLES);
+
+		m_Shader.setUniform("uniform_color", wireFrameColor);
+		m_QuadMesh->Draw(GL_LINES);
+		break;
+	default:
+		break;
+	}
+}
+
+void Shapes::Draw_Line(const glm::mat4& vp, const glm::vec3 start, const glm::vec3 end, const glm::vec4& color)
+{
+	m_Shader.Activate();
+	glm::mat4 model = glm::translate(glm::mat4(1.f), start) * glm::scale(glm::mat4(1.f), end - start);
+
+	glm::mat4 m2w = vp * model;	
+
+	m_Shader.setUniform("uniform_m2w", m2w);
+	m_Shader.setUniform("uniform_color", color);
+
+	m_LineMesh->Draw(GL_LINES);
+
+}
+
 void Shapes::Draw_InstancedCubes(const glm::mat4& vp, const glm::vec4& color, DrawType drawtype, const glm::vec4& wireFrameColor)
 {
-
-	m_Shader.setUniform("uniform_m2w", vp);
-	m_Shader.setUniform("uniform_color", color);
+	m_InstancedShader.Activate();
+	m_InstancedShader.setUniform("uniform_m2w", vp);
+	m_InstancedShader.setUniform("uniform_color", color);
 
 	switch (drawtype)
 	{
@@ -104,7 +159,7 @@ void Shapes::Draw_InstancedCubes(const glm::mat4& vp, const glm::vec4& color, Dr
 		m_InstancedCube->Draw(GL_TRIANGLE_FAN);
 		break;
 	case WIREFRAME:
-		glDisable(GL_DEPTH_TEST);
+	
 		m_InstancedCube->Draw(GL_LINES);
 		break;
 	case FILLEDWIREFRAME:
@@ -117,4 +172,33 @@ void Shapes::Draw_InstancedCubes(const glm::mat4& vp, const glm::vec4& color, Dr
 		break;
 	}
 
+}
+
+void Shapes::Draw_InstancedQuads(const glm::mat4& vp, const glm::vec4& color, DrawType drawtype, const glm::vec4& wireFrameColor)
+{
+	m_InstancedShader.Activate();
+	m_InstancedShader.setUniform("uniform_m2w", vp);
+	m_InstancedShader.setUniform("uniform_color", color);
+
+	switch (drawtype)
+	{
+	case FILLED:
+
+		m_InstancedQuad->Draw(GL_TRIANGLES);
+		break;
+	case WIREFRAME:
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		m_InstancedQuad->Draw(GL_TRIANGLES);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		break;
+	case FILLEDWIREFRAME:
+		m_InstancedQuad->Draw(GL_TRIANGLES);
+
+		m_Shader.setUniform("uniform_color", wireFrameColor);
+		m_InstancedQuad->Draw(GL_LINES);
+		break;
+	default:
+		break;
+	}
 }

@@ -1,23 +1,50 @@
 #include "VBO.h"
+#include <iostream>
 
-VBO::VBO(const GLfloat* vertices, GLsizeiptr size)
+VBO::VBO(const GLfloat* vertices, GLsizeiptr size, GLenum target , GLenum drawMode):
+	m_Target(target),
+	m_DrawMode(drawMode),
+	m_Size(size)
 {
 	glGenBuffers(1, &m_ID);//genereate vertex buffer object to store data
-	glBindBuffer(GL_ARRAY_BUFFER, m_ID); //bind VBO
+	glBindBuffer(target, m_ID); //bind VBO
 
 	//assign vertices data into the VBO
-	glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+	glBufferData(target, size, nullptr, drawMode);
+	glBufferSubData(target, 0, size, vertices);
 }
 
 
+void VBO::UpdateData(const void* data, GLsizeiptr size, GLintptr offset)
+{
+	glBindBuffer(m_Target, m_ID);
+
+
+	if (size != m_Size) {
+		//GLint bufferSize;
+		//glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &bufferSize);
+		//printf("Before Buffer size: %d bytes\n", bufferSize);
+
+		// If the size is different, we need to reallocate the buffer
+		glBufferData(m_Target, size, nullptr, m_DrawMode); // Reallocate buffer with new size
+
+		//glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &bufferSize);
+		//printf("After Buffer size: %d bytes\n", bufferSize);
+
+		m_Size = size; // Update the size
+	}
+	glBufferSubData(m_Target, offset, size, data);
+
+}
+
 void VBO::Bind()
 {
-	glBindBuffer(GL_ARRAY_BUFFER, m_ID); //bind VBO
+	glBindBuffer(m_Target, m_ID); //bind VBO
 }
 
 void VBO::Unbind()
 {
-	glBindBuffer(GL_ARRAY_BUFFER, 0); //bind VBO
+	glBindBuffer(m_Target, 0); //bind VBO
 }
 
 void VBO::Delete()

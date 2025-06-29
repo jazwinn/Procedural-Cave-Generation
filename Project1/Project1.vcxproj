@@ -120,7 +120,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Graphics;$(SolutionDir)Imgui;$(SolutionDir)Application;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Algorithms;$(SolutionDir)Graphics;$(SolutionDir)Imgui;$(SolutionDir)Application;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -138,7 +138,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Graphics;$(SolutionDir)Imgui;$(SolutionDir)Application;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Algorithms;$(SolutionDir)Graphics;$(SolutionDir)Imgui;$(SolutionDir)Application;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -160,6 +160,7 @@
     <ClCompile Include="Graphics\VBO.cpp" />
     <ClCompile Include="Graphics\VAO.cpp" />
     <ClCompile Include="Graphics\Texture.cpp" />
+    <ClCompile Include="Algorithms\Voxel.cpp" />
     <ClCompile Include="Imgui\ImguiHandler.cpp" />
     <ClCompile Include="Graphics\Mesh.cpp" />
     <ClCompile Include="Graphics\Shapes.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="Graphics\VBO.h" />
     <ClInclude Include="Graphics\VAO.h" />
     <ClInclude Include="Graphics\Texture.h" />
+    <ClInclude Include="Algorithms\Voxel.h" />
     <ClInclude Include="Imgui\ImguiHandler.h" />
     <ClInclude Include="Graphics\Mesh.h" />
     <ClInclude Include="Graphics\Shapes.h" />

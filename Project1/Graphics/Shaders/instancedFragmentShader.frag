@@ -1,15 +1,15 @@
 #version 330 core
 
+in vec2 vNormal;
 
 out vec4 FragColor;
-in float aVisable;
+
 
 uniform vec4 uniform_color;
 
 void main(){
-    if(aVisable < 0.5f) {
-        discard;
-    }
+	// Set the fragment color to the uniform colo
 	FragColor = uniform_color;
+
 
 }

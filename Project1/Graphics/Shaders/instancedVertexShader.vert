@@ -2,13 +2,11 @@
 
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in mat4x4 instancedMatrix;
-layout (location = 5) in float visable;
 
-out float aVisable;
+
 
 uniform mat4 uniform_m2w;
 
 void main() {
-    aVisable = visable;
     gl_Position = uniform_m2w * instancedMatrix * vec4(aPos, 1.0);
 }
