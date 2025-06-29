@@ -7,10 +7,16 @@ namespace graphic{
 	
 	void sizeCallback(GLFWwindow* pWindow, int width, int height)
 	{
-		glViewport(0,0,width,height);
+		int fbWidth, fbHeight;
+		glfwGetFramebufferSize(pWindow, &fbWidth, &fbHeight);
+		glViewport(0, 0, fbWidth, fbHeight);
 		auto* pipeline = static_cast<GraphicPipeline*>(glfwGetWindowUserPointer(pWindow));
-		if (pipeline)
+		if (pipeline) {
 			pipeline->Get_Camera().Resize(width, height);
+		}
+			
+
+		glScissor(0, 0, width, height);
 	}
 
 	GraphicPipeline::GraphicPipeline(window::Window& window):
@@ -24,6 +30,7 @@ namespace graphic{
 		//Callbacks
 		glfwSetWindowUserPointer(window.window, this);
 		glfwSetWindowSizeCallback(window.window, sizeCallback);
+		//glfwSetWindowMaximizeCallback(window.window, sizeCallback);
 
 	}
 
@@ -85,7 +92,7 @@ namespace graphic{
 
 	void GraphicPipeline::Draw()
 	{
-		glEnable(GL_SCISSOR_TEST);
+		//glEnable(GL_SCISSOR_TEST);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
