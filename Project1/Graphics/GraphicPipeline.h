@@ -1,29 +1,46 @@
 #pragma once
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <vector>
+
+#include "window.h"
 #include "Shader.h"
 #include "Texture.h"
 #include "VAO.h"
 #include "VBO.h"
 #include "EBO.h"
+#include "Shapes.h"
+#include "Camera.h"
+#include "Voxel.h"
 
-#include <vector>
 
 namespace graphic {
 	class GraphicPipeline
 	{
 	public:
-		GraphicPipeline();
+		GraphicPipeline(window::Window& window);
 		~GraphicPipeline();
 		
+		
+		void Update(float dt);
 		void Draw();
+
+		Camera& Get_Camera() { return m_camera; }
+		Voxel& Get_Voxel() { return m_voxel;}
+		Shapes& Get_Shapes() { return m_Shapes; }
+
 	
 	private:
 
-		std::vector<Shader> vec_Shader;
-		std::vector<VAO> vec_VAO;
-		std::vector<VBO> vec_VBO;
-		std::vector<EBO> vec_EBO;
-		std::vector<Texture> vec_Texture;
+		
+		Voxel m_voxel;
+		Shader m_genericShader;
+		Shader m_InstancedShader;
+		window::Window& m_window;
+		Shapes m_Shapes;
+		Camera m_camera;
+		
+
 	};
 }
 

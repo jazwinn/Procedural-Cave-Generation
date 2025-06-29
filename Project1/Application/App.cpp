@@ -1,144 +1,110 @@
 #include "App.h"
 #include <cmath>
 #include <iostream>
-#include <stb_image.h>
-#include <glm/gtc/matrix_transform.hpp>
+
+void CreateHeartShape(std::shared_ptr<Chunks> chunk)
+{
+	if (!chunk) return;
+
+	int w = chunk->GetWidth();
+	int h = chunk->GetHeight();
+	int d = chunk->GetDepth();
+
+	// Center coordinates in the chunk
+	float cx = w / 2.0f;
+	float cy = h / 2.0f;
+	float cz = d / 2.0f;
+
+	// Scale factors to map block indices to [-1.5,1.5] range roughly
+	float scaleX = 3.0f / w;
+	float scaleY = 3.0f / h;
+	float scaleZ = 3.0f / d;
+	
+	for (int z = 0; z < d; ++z) {
+		for (int y = 0; y < h; ++y) {
+			for (int x = 0; x < w; ++x) {
+				// Map to [-1.5, 1.5] space centered at zero
+				float nx = (x - cx) * scaleX;
+				float ny = (y - cy) * scaleY;
+				float nz = (z - cz) * scaleZ;
+
+				// Heart formula:
+				float lhs = pow(nx * nx + (9.0f / 4.0f) * ny * ny + nz * nz - 1, 3);
+				float rhs = nx * nx * pow(nz, 3) + (9.0f / 80.0f) * ny * ny * pow(nz, 3);
+
+				if (lhs - rhs <= 0) {
+					chunk->at(x, y, z) = SOLID;
+				}
+				else {
+					chunk->at(x, y, z) = EMPTY;
+				}
+			}
+		}
+	}
+}
 
 
 
 namespace app {
-	App::App() :m_window{}, m_graphicPipeline{}, m_imgui(m_window.m_window, "#version 130")
+	App::App() :
+		m_window{}, 
+		m_graphicPipeline(m_window), 
+		m_imgui(m_window.window, "#version 130")
 	{
 
 	}
+
+
 	App::~App()
 	{
 
 	}
 	int App::Run()
 	{
-		Shader shaderprogram("./Graphics/Shaders/genericVertexShader.vert", "./Graphics/Shaders/genericFragmentShader.frag");
+
+		Voxel& voxel = m_graphicPipeline.Get_Voxel();
+		int key = voxel.AddChunk(0, 0, 0, 32, 32, 32, 0.1);
 
 
-		int width, height, nChannels;
-		unsigned char* data = stbi_load("./Assets/Texture/iceland_heightmap.png",
-			&width, &height, &nChannels,
-			0);
+		std::shared_ptr<Chunks> chunk = voxel.GetChunk(key);
 
-		if (!data) {
-			std::cout << "Fail to load height map" << std::endl;
-		}
+		//CreateHeartShape(chunk);
+		chunk->at(0, 0, 0) = EMPTY;
 
-		std::vector<float> vertices;
-		float yScale = 64.0f / 256.0f, yShift = 16.0f;  // apply a scale+shift to the height data
-		for (unsigned int i = 0; i < height; i++)
-		{
-			for (unsigned int j = 0; j < width; j++)
-			{
-				// retrieve texel for (i,j) tex coord
-				unsigned char* texel = data + (j + width * i) * nChannels;
-				// raw height at coordinate
-				unsigned char y = texel[0];
+		voxel.UpdateChunk(key);
 
-				// vertex
-				vertices.push_back(-height / 2.0f + i);        // v.x
-				vertices.push_back((int)y * yScale - yShift); // v.y
-				vertices.push_back(-width / 2.0f + j);        // v.z
-			}
-		}
+		//note to draw inside while loop
+		Shapes& shape = m_graphicPipeline.Get_Shapes();
+		Camera& camera = m_graphicPipeline.Get_Camera();
 
-
-		stbi_image_free(data);
-
-		std::vector<unsigned int> indices;
-		for (unsigned int i = 0; i < height - 1; i++)       // for each row a.k.a. each strip
-		{
-			for (unsigned int j = 0; j < width; j++)      // for each column
-			{
-				for (unsigned int k = 0; k < 2; k++)      // for each side of the strip
-				{
-					indices.push_back(j + width * (i + k));
-				}
-			}
-		}
-
-		const unsigned int NUM_STRIPS = height - 1;
-		const unsigned int NUM_VERTS_PER_STRIP = width * 2;
-
-		// register
-
-		GLuint terrainVAO, terrainVBO, terrainEBO;
-		glGenVertexArrays(1, &terrainVAO);
-		glBindVertexArray(terrainVAO);
-
-		glGenBuffers(1, &terrainVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, terrainVBO);
-		glBufferData(GL_ARRAY_BUFFER,
-			vertices.size() * sizeof(float),       // size of vertices buffer
-			&vertices[0],                          // pointer to first element
-			GL_STATIC_DRAW);
-
-		// position attribute
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-		glEnableVertexAttribArray(0);
-
-		glGenBuffers(1, &terrainEBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, terrainEBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-			indices.size() * sizeof(unsigned int), // size of indices buffer
-			&indices[0],                           // pointer to first element
-			GL_STATIC_DRAW);
-
-		//uniform
-
-		glm::mat4 view = glm::lookAt(
-			glm::vec3(0.0f, 20.0f, 50.0f), // eye
-			glm::vec3(0.0f, 0.0f, 0.0f),   // center
-			glm::vec3(0.0f, 1.0f, 0.0f)    // up
-		);
-		glm::mat4 projection = glm::perspective(
-			glm::radians(90.0f),
-			(float)m_window.getWindowWidth() / (float)m_window.getWindowHeigth(),
-			0.1f,
-			1000.0f
-		);
+		
 
 
 
 
-		while (!glfwWindowShouldClose(m_window.m_window)) {
+		float lastTime = static_cast<float>(glfwGetTime());
+		float deltaTime = 0.0f;
+
+		while (!glfwWindowShouldClose(m_window.window)) {
+			float currentTime = static_cast<float>(glfwGetTime());
+			deltaTime = currentTime - lastTime;
+			lastTime = currentTime;
+
 			glfwPollEvents();
-
+			glClearDepth(1.0);
 			glClearColor(0.f, 0.f, 0.f, 1.f);
-			glClear(GL_COLOR_BUFFER_BIT);
-
-			//set uniform
-			shaderprogram.setUniform("view", view);
-			shaderprogram.setUniform("projection", projection);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			// UPDATE
-
 			m_imgui.Update();
+			m_graphicPipeline.Update(deltaTime);
+			
 
 			// DRAW
-
-			shaderprogram.Activate();
-
-			glBindVertexArray(terrainVAO);
-			// render the mesh triangle strip by triangle strip - each row at a time
-			for (unsigned int strip = 0; strip < NUM_STRIPS; ++strip)
-			{
-				glDrawElements(GL_LINES,   // primitive type
-					NUM_VERTS_PER_STRIP, // number of indices to render
-					GL_UNSIGNED_INT,     // index data type
-					(void*)(sizeof(unsigned int)
-						* NUM_VERTS_PER_STRIP
-						* strip)); // offset to starting index
-			}
-
+			m_graphicPipeline.Draw();
 			m_imgui.Render();
 
-			glfwSwapBuffers(m_window.m_window);
+			glfwSwapBuffers(m_window.window);
 		}
 
 
