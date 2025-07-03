@@ -1,18 +1,4 @@
-/************************************************************************/
-/*!
-FILENAME:		Camera.cpp
-AUTHOR(S):		Yu Heng (100%)
-BRIEF:			Camera class that holds the functions for the
-				camera handling which includes, movements, updating
-				views, and projection matrices, and converting screen
-				space coordinates to world space coordinates.
-
-All content © 2024 DigiPen Institute of Technology Singapore. All
-rights reserved.
-*/
-/************************************************************************/
 #include "Camera.h"
-
 #include <iostream>
 
 Camera::Camera(float width, float height) : viewportWidth{ width }, viewportHeight{ height } {

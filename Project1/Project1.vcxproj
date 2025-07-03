@@ -150,6 +150,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Algorithms\BinarySpacePartition.cpp" />
+    <ClCompile Include="Algorithms\CellularAutomata.cpp" />
     <ClCompile Include="Application\App.cpp" />
     <ClCompile Include="Application\main.cpp" />
     <ClCompile Include="Application\window.cpp" />
@@ -166,10 +168,13 @@
     <ClCompile Include="Graphics\Shapes.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Algorithms\BinarySpacePartition.h" />
+    <ClInclude Include="Algorithms\CellularAutomata.h" />
     <ClInclude Include="Application\App.h" />
     <ClInclude Include="Application\window.h" />
     <ClInclude Include="Graphics\Camera.h" />
     <ClInclude Include="Graphics\EBO.h" />
+    <ClInclude Include="Graphics\Generator.h" />
     <ClInclude Include="Graphics\GraphicPipeline.h" />
     <ClInclude Include="Graphics\Shader.h" />
     <ClInclude Include="Graphics\VBO.h" />
