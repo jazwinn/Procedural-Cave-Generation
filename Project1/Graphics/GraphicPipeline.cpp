@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-namespace graphic{
+namespace graphic { 
 	
 	void sizeCallback(GLFWwindow* pWindow, int width, int height)
 	{
@@ -13,8 +13,6 @@ namespace graphic{
 		auto* pipeline = static_cast<GraphicPipeline*>(glfwGetWindowUserPointer(pWindow));
 		if (pipeline) {
 			pipeline->Get_Camera().Resize(width, height);
-		}
-			
 
 		glScissor(0, 0, width, height);
 	}
@@ -79,30 +77,23 @@ namespace graphic{
 
 		}
 
-
-
 		m_camera.UpdateProjection();
 		m_camera.UpdateView();
 		m_camera.UpdateViewProjection();
 		m_camera.prevMouseCursor = glm::vec2{cursor_x, cursor_y};
-
-
-
 	}
 
-	void GraphicPipeline::Draw()
-	{
-		//glEnable(GL_SCISSOR_TEST);
+	void GraphicPipeline::Draw() {
+		glEnable(GL_SCISSOR_TEST);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 		glFrontFace(GL_CCW);
 
 		//INSTANCED
-		m_voxel.DrawVoxel(m_camera.GetViewProjectionMatrix(), glm::vec4{ 1,0,0,1 }, GL_LINES);
+		m_voxel.DrawVoxel(m_camera.GetViewProjectionMatrix(), glm::vec4{ 1,0,0,0.2 }, GL_LINES);
 
 		//SINGLE
 		m_Shapes.Draw_Rectangle(m_camera.GetViewProjectionMatrix(), glm::vec3{ 0,0,0 }, glm::vec3{ 10,10,10 }, glm::vec4{ 1,1,1,1 }, DrawType::WIREFRAME);
 	}
-
 }

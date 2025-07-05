@@ -46,41 +46,32 @@ void CreateHeartShape(std::shared_ptr<Chunks> chunk)
 
 
 namespace app {
-	App::App() :
-		m_window{}, 
-		m_graphicPipeline(m_window), 
-		m_imgui(m_window.window, "#version 130")
-	{
+	App::App() : m_window{}, m_graphicPipeline(m_window), m_imgui(m_window.window, "#version 130") {}
 
-	}
+	App::~App() {}
 
-
-	App::~App()
-	{
-
-	}
-	int App::Run()
-	{
-
+	int App::Run() {
 		Voxel& voxel = m_graphicPipeline.Get_Voxel();
-		int key = voxel.AddChunk(0, 0, 0, 32, 32, 32, 0.1);
 
+		std::vector<std::pair<int, CellularAutomata>> activeCAs;
+		bool simulate = false;
 
-		std::shared_ptr<Chunks> chunk = voxel.GetChunk(key);
+		float vs = 0.5f;
+		glm::vec3 fullSize = { 10,10,10 };
+		int dimX = static_cast<int>(fullSize.x / vs),
+			dimY = static_cast<int>(fullSize.y / vs),
+			dimZ = static_cast<int>(fullSize.z / vs);
+		glm::vec3 worldSize = glm::vec3(dimX, dimY, dimZ) * vs;
+		glm::vec3 worldMin = -worldSize * 0.5f;
 
-		//CreateHeartShape(chunk);
-		chunk->at(0, 0, 0) = EMPTY;
+		static BinarySpacePartition bsp;
 
-		voxel.UpdateChunk(key);
+		bsp.SetBounds(worldMin, worldSize);
+		bsp.Update();
 
-		//note to draw inside while loop
+		// Note to draw inside while loop
 		Shapes& shape = m_graphicPipeline.Get_Shapes();
 		Camera& camera = m_graphicPipeline.Get_Camera();
-
-		
-
-
-
 
 		float lastTime = static_cast<float>(glfwGetTime());
 		float deltaTime = 0.0f;
@@ -98,16 +89,60 @@ namespace app {
 			// UPDATE
 			m_imgui.Update();
 			m_graphicPipeline.Update(deltaTime);
-			
+			if (ImGui::Button("Generate BSP")) {
+				bsp.Update();
+				activeCAs.clear();
+				auto rooms = bsp.GetRooms();
+				for (auto& room : rooms) {
+					constexpr int subDim = 16;
+					glm::vec3 roomCenter = room.center + 0.5f * room.extent;
+					glm::vec3 subWorldMin = roomCenter - glm::vec3{ subDim } *vs * 0.5f;
+					int caKey = voxel.AddChunk(0, 0, 0, subDim, subDim, subDim, vs);
+					auto caChunk = voxel.GetChunk(caKey);
+					CellularAutomata ca;
+					ca.SetChunk(caChunk, subWorldMin, glm::vec3(subDim) * vs);
+					ca.SetSeeds({ room });
+					voxel.UpdateChunk(caKey);
+					activeCAs.emplace_back(caKey, std::move(ca));
+				}
+			}
+
+			static int frameCounter = 0;
+			const int framesPerStep = 256;
+
+			if (ImGui::Begin("Controls")) {
+				ImGui::Checkbox("Run", &simulate);
+				if (ImGui::Button("Step CA")) {
+					for (auto& [key, ca] : activeCAs) {
+						if (!ca.IsComplete()) {
+							ca.Update();
+							voxel.UpdateChunk(key);
+						}
+					}
+				}
+				ImGui::Separator();
+				ImGui::End();
+			}
+
+			if (simulate) {
+				if (++frameCounter >= framesPerStep) {
+					frameCounter = 0;
+					for (auto& [key, ca] : activeCAs) {
+						if (!ca.IsComplete()) {
+							ca.Update();
+							voxel.UpdateChunk(key);
+						}
+					}
+				}
+			}
 
 			// DRAW
 			m_graphicPipeline.Draw();
+			bsp.Draw(shape, camera.GetViewProjectionMatrix(), glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
 			m_imgui.Render();
 
 			glfwSwapBuffers(m_window.window);
 		}
-
-
 
 		return 0;
 	}
