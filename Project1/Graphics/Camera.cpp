@@ -2,7 +2,7 @@
 #include <iostream>
 
 Camera::Camera(float width, float height) : viewportWidth{ width }, viewportHeight{ height } {
-	position = glm::vec3{0.f, 0.f, 20.f};
+	position = glm::vec3{0.f, 0.f, 100.f};
 	zoom = 1.0f;
 	aspectRatio = viewportWidth / viewportHeight;
 	nearClipPlane = 0.1f;

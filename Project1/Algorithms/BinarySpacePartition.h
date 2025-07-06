@@ -5,13 +5,15 @@
 
 #include "Generator.h"
 #include "Shapes.h"
-#include "imgui.h"
+
 
 struct BSPParams {
-	int minSize   = 2;
+	int minSize   = 25;
 	int maxDepth  = 6;
 	float balance = 0.3f;
-	int buffer = 1; // Buffer space around rooms
+	int buffer = 10; // Buffer space around rooms
+	bool randomRooms = false;
+	int randomRoomCount = 10; // Number of random rooms to generate
 };
 
 class BinarySpacePartition : public Generator {
