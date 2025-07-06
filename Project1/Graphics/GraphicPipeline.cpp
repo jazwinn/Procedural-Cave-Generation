@@ -93,7 +93,7 @@ namespace graphic {
 		glFrontFace(GL_CCW);
 
 		//INSTANCED
-		m_voxel.DrawVoxel(m_camera.GetViewProjectionMatrix(), glm::vec4{ 1,0,0,0.2 }, GL_LINES);
+		m_voxel.DrawVoxel(m_camera.GetViewProjectionMatrix(), m_voxel.color, GL_LINES);
 
 
 	}
@@ -101,9 +101,9 @@ namespace graphic {
 	void GraphicPipeline::DrawImgui()
 	{
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-		if (ImGui::TreeNode("Graphics Setting")) {
+		if (ImGui::CollapsingHeader("Graphics Setting")) {
 			ImGui::Checkbox("Greedy", &m_voxel.config.greedy);
-			ImGui::TreePop();
+			ImGui::ColorEdit4("Voxel Color", &m_voxel.color.x);
 		}
 	}
 
