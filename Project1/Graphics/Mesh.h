@@ -22,6 +22,11 @@ public:
 	VBO& GetInstanceVBO() {
 		return m_instanceVBO;
 	}
+
+	VBO& GetVBO() {
+		return m_VBO;
+	}
+
 	VAO& GetVAO() {
 		return m_VAO;
 	}

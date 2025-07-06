@@ -5,16 +5,22 @@
 
 #include "Generator.h"
 #include "Shapes.h"
-#include "imgui.h"
+
 
 struct BSPParams {
-	int minSize   = 3;
+	int minSize   = 25;
 	int maxDepth  = 6;
 	float balance = 0.3f;
+	int buffer = 10; // Buffer space around rooms
+	bool randomRooms = false;
+	int randomRoomCount = 10; // Number of random rooms to generate
 };
 
 class BinarySpacePartition : public Generator {
 public:
+	BinarySpacePartition(unsigned int& seed) :m_seed(seed) {
+		
+	}
 	BSPParams params;
 	glm::vec3 m_origin{ 0.0f };
 	glm::vec3 m_size{ 1.0f };
@@ -44,6 +50,7 @@ public:
 	std::vector<Room> GetRooms() { return m_rooms; }
 private:
 	void Partition(const glm::vec3&, const glm::vec3&, int);
+	unsigned int& m_seed;
 };
 
 #endif

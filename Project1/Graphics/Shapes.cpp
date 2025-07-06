@@ -52,15 +52,15 @@ Shapes::Shapes(Shader& shader, Shader& instancedShader):
 	m_QuadMesh = std::make_unique<Mesh>(verticesQuad, indicesQuad);
 
 	std::vector<GLfloat> lineVertices = {
-	0.0f, 0.0f, 0.0f,  
-	1.0f, 1.0f, 1.0f   
+		0.0f, 0.0f, 0.0f,  
+		1.0f, 1.0f, 1.0f   
 	};
 
 	std::vector<GLuint> lineIndices = {
 		0, 1
 	};
 
-	m_LineMesh = std::make_unique<Mesh>(lineVertices, lineIndices);
+	m_LineMesh = std::make_unique<Mesh>(lineVertices, lineIndices, 1, std::vector<glm::mat4x4>(), GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
 
 }
 
@@ -136,12 +136,19 @@ void Shapes::Draw_Quad(const glm::mat4& vp, const glm::vec3 center, const glm::v
 void Shapes::Draw_Line(const glm::mat4& vp, const glm::vec3 start, const glm::vec3 end, const glm::vec4& color)
 {
 	m_Shader.Activate();
-	glm::mat4 model = glm::translate(glm::mat4(1.f), start) * glm::scale(glm::mat4(1.f), end - start);
+	//auto const& model = glm::translate(glm::mat4(1.f), start) * glm::scale(glm::mat4(1.f), end - start);
 
-	glm::mat4 m2w = vp * model;	
+	//glm::mat4 m2w = vp * model;
 
-	m_Shader.setUniform("uniform_m2w", m2w);
+	m_Shader.setUniform("uniform_m2w", vp);
 	m_Shader.setUniform("uniform_color", color);
+
+	std::vector<GLfloat> lineVertices = {
+		start.x, start.y, start.z,
+		end.x, end.y, end.z
+	};
+	m_LineMesh->GetVAO().Bind();
+	m_LineMesh->GetVBO().UpdateData(lineVertices.data(), lineVertices.size() * sizeof(GLfloat), 0);
 
 	m_LineMesh->Draw(GL_LINES);
 

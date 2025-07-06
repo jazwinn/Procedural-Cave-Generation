@@ -1,6 +1,6 @@
 #include "CellularAutomata.h"
+#include "Imgui.h"
 
-CellularAutomata::CellularAutomata() {}
 
 void CellularAutomata::SetChunk(std::shared_ptr<Chunks> chunk, const glm::vec3& worldMin, const glm::vec3& worldSize) {
     m_chunk = chunk;
@@ -18,7 +18,7 @@ void CellularAutomata::SetChunk(std::shared_ptr<Chunks> chunk, const glm::vec3& 
 void CellularAutomata::SetSeeds(const std::vector<BinarySpacePartition::Room>& rooms) {
     std::fill(m_grid.begin(), m_grid.end(), 1);
 
-    std::mt19937 rng(std::random_device{}());
+    std::mt19937 rng(m_seed);
     std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 
     for (auto& room : rooms) {
