@@ -21,15 +21,8 @@ void VBO::UpdateData(const void* data, GLsizeiptr size, GLintptr offset)
 
 
 	if (size != m_Size) {
-		//GLint bufferSize;
-		//glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &bufferSize);
-		//printf("Before Buffer size: %d bytes\n", bufferSize);
-
 		// If the size is different, we need to reallocate the buffer
 		glBufferData(m_Target, size, nullptr, m_DrawMode); // Reallocate buffer with new size
-
-		//glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &bufferSize);
-		//printf("After Buffer size: %d bytes\n", bufferSize);
 
 		m_Size = size; // Update the size
 	}

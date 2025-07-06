@@ -28,16 +28,18 @@ struct Quad {
 
 class Chunks {
 public:
-	Chunks(int _x, int _y, int _z, int chunkWidth, int chunkHeigth, int chunkDepth, float chunkScale = 1.f):
-		m_X(_x - chunkWidth / 2), m_Y(_y - chunkHeigth / 2), m_Z(_z - chunkDepth / 2), 
-		m_Width(chunkWidth), m_Height(chunkHeigth), m_Depth(chunkDepth), m_ScaleFactor(chunkScale)
+	Chunks(float _x, float _y, float _z, int chunkWidth, int chunkHeight, int chunkDepth, float chunkScale = 1.f):
+		m_X(_x - (chunkWidth * chunkScale) / 2.f + chunkScale * 0.5f),
+		m_Y(_y - (chunkHeight * chunkScale) / 2.f + chunkScale * 0.5f),
+		m_Z(_z - (chunkDepth * chunkScale) / 2.f + chunkScale * 0.5f),
+		m_Width(chunkWidth), m_Height(chunkHeight), m_Depth(chunkDepth), m_ScaleFactor(chunkScale) 
 	{
 		m_Blocks.resize(m_Width * m_Height * m_Depth, SOLID); // Initialize all blocks to SOLID
 	}
 
 
 	std::vector<Quad> GenerateQuads();
-
+	std::vector<Quad> GenerateQuadsGreedy();
 
 	BlockType& at(int x, int y, int z) {
 		return m_Blocks[x + y * m_Width + z * m_Width * m_Height];
@@ -47,6 +49,7 @@ public:
 	int GetHeight() const { return m_Height; }
 	int GetDepth() const { return m_Depth; }
 	float GetScale() const { return m_ScaleFactor; }
+	glm::vec3 GetPosition() const { return glm::vec3(m_X, m_Y, m_Z); }
    
 
 private:
@@ -74,7 +77,7 @@ private:
 	}
 
 private:
-	int m_X, m_Y, m_Z; // Position of the chunk in the world
+	float m_X, m_Y, m_Z; // Position of the chunk in the world
 	int m_Width, m_Height, m_Depth; // Dimensions of the chunk
 	float m_ScaleFactor; // Scale factor for rendering
 
@@ -90,11 +93,15 @@ public:
 
 
 	void UpdateChunk(int key);
+	void UpdateAllChunk();
 	void DrawVoxel(const glm::mat4& vp, const glm::vec4& color, GLenum mode);
 
 
-	int AddChunk(int x, int y, int z, int width, int height, int depth, float scale = 1.f) {
-		int key = x + (y << 8) + (z << 24);
+	void deleteChunk(int key);
+	void clearVoxel();
+
+	int AddChunk(float x, float y, float z, int width, int height, int depth, float scale = 1.f) {
+		int key = m_keyCount++;
 		m_Chunks[key] = std::make_unique<Chunks>(x, y, z, width, height, depth, scale);
 
 		return key;
@@ -128,5 +135,6 @@ private:
 	std::unique_ptr<Mesh> m_InstancedQuad;
 
 	bool m_modified;
+	int m_keyCount;
 	Shader& m_Shader; // Reference to the shader for rendering
 };
