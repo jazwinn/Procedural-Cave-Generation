@@ -1,7 +1,6 @@
 #pragma once
 
-#include "BinarySpacePartition.h"
-#include "CellularAutomata.h"
+
 #include "window.h"
 #include "GraphicPipeline.h"
 #include "ImguiHandler.h"
