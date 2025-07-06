@@ -11,7 +11,7 @@ Camera::Camera(float width, float height) : viewportWidth{ width }, viewportHeig
 	followSpeed = 0.01f;
 	toUpdate = true;
 	fovDegree = 70.f;
-	direction = glm::vec3{ -1,0,-15 };
+	direction = glm::normalize(glm::vec3(0.f, 0.f, 0.f) - position);
 	UpdateProjection();
 }
 

@@ -33,14 +33,16 @@ void imgui::ImguiHandler::Update()
 	ImGuizmo::BeginFrame();
 
 
-	ImGui::Begin("Window");
+	//ImGui::Begin("Window");
 
 
 
 
-	ImGui::End();
 
-	ImGui::ShowDemoWindow();
+
+
+	//ImGui::End();
+
 }
 
 void imgui::ImguiHandler::Render()

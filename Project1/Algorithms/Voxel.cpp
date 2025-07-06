@@ -2,6 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <GL/glew.h>
 #include <iostream>
+#include <array>
 
 
 std::vector<Quad> Chunks::GenerateQuads() {
@@ -25,9 +26,9 @@ std::vector<Quad> Chunks::GenerateQuads() {
 
 
                         // Apply world offset
-                        quad.x = face_x + m_X;
-                        quad.y = face_y + m_Y;
-                        quad.z = face_z + m_Z;
+                        quad.x = face_x;
+                        quad.y = face_y;
+                        quad.z = face_z;
 
                         quad.width = 1;
                         quad.height = 1;
@@ -50,7 +51,8 @@ std::vector<Quad> Chunks::GenerateQuads() {
 
 Voxel::Voxel(Shader& shader):
 	m_modified{ false },
-	m_Shader{ shader }
+	m_Shader{ shader }, 
+	m_keyCount(0)
 {
 
     std::vector<GLfloat> verticesQuad = {
@@ -72,6 +74,8 @@ Voxel::Voxel(Shader& shader):
 
 
     m_InstancedQuad = std::make_unique<Mesh>(verticesQuad, indicesQuad, m_transforms.size(), m_transforms, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
+	m_transforms.clear();
+	m_InstancedQuad->GetInstanceVBO().UpdateData(m_transforms.data(), 0, 0);
 }
 
 void Voxel::UpdateChunk(int key)
@@ -79,12 +83,12 @@ void Voxel::UpdateChunk(int key)
 	auto it = m_Chunks.find(key);
 	if (it != m_Chunks.end()) {
 		// Chunk exists, update it
-        std::vector<Quad> quads = it->second->GenerateQuads();
-
+       // std::vector<Quad> quads = it->second->GenerateQuads();
+		std::vector<Quad> quads = it->second->GenerateQuadsGreedy();
 		std::vector<glm::mat4x4> transforms;
 
 		float scaleFactor = it->second->GetScale(); // Scale factor for the cubes
-		glm::vec3 chunkPosition = glm::vec3(0.f);
+		glm::vec3 chunkPosition = it->second->GetPosition();
 
 		for (const auto& quad : quads) {
 
@@ -96,12 +100,12 @@ void Voxel::UpdateChunk(int key)
 
 			glm::vec3 faceOffset;
 			switch (quad.face) {
-			case 0: faceOffset = glm::vec3(0.5f, 0.0f, 0.0f); break; // +X
-			case 1: faceOffset = glm::vec3(-0.5f, 0.0f, 0.0f); break; // -X
-			case 2: faceOffset = glm::vec3(0.0f, 0.5f, 0.0f); break; // +Y
-			case 3: faceOffset = glm::vec3(0.0f, -0.5f, 0.0f); break; // -Y
-			case 4: faceOffset = glm::vec3(0.0f, 0.0f, 0.5f); break; // +Z
-			case 5: faceOffset = glm::vec3(0.0f, 0.0f, -0.5f); break; // -Z
+			case 0: faceOffset = glm::vec3(0.5f					  , 0.5f * (quad.height - 1), 0.5f * (quad.width - 1)); break; // +X
+			case 1: faceOffset = glm::vec3(-0.5f			      , 0.5f * (quad.height - 1), 0.5f * (quad.width - 1)); break; // -X
+			case 2: faceOffset = glm::vec3(0.5f * (quad.width - 1), 0.5f				    , 0.5f * (quad.height - 1)); break; // +Y
+			case 3: faceOffset = glm::vec3(0.5f * (quad.width - 1), -0.5f					, 0.5f * (quad.height - 1)); break; // -Y
+			case 4: faceOffset = glm::vec3(0.5f * (quad.width - 1), 0.5f * (quad.height - 1), 0.5f); break; // +Z
+			case 5: faceOffset = glm::vec3(0.5f * (quad.width - 1), 0.5f * (quad.height - 1), -0.5f); break; // -Z
 			}
 
 
@@ -135,6 +139,7 @@ void Voxel::UpdateChunk(int key)
 		}
 
 
+
 		m_ChunkTransforms[key] = transforms;
 
 	}
@@ -145,6 +150,13 @@ void Voxel::UpdateChunk(int key)
 	}
 	m_modified = true;
 
+}
+
+void Voxel::UpdateAllChunk()
+{
+	for (const auto& chunk : m_Chunks) {
+		UpdateChunk(chunk.first);
+	}
 }
 
 void Voxel::DrawVoxel(const glm::mat4& vp, const glm::vec4& color, GLenum mode)
@@ -194,4 +206,163 @@ void Voxel::DrawVoxel(const glm::mat4& vp, const glm::vec4& color, GLenum mode)
 		m_InstancedQuad->Draw(mode);
 	}
 	
+}
+
+void Voxel::deleteChunk(int key)
+{
+	if (m_Chunks.find(key) != m_Chunks.end()) {
+		m_Chunks.erase(key);
+		m_ChunkTransforms.erase(key);
+		m_modified = true;
+	}
+	else {
+		std::cout << "Chunk with key " << key << " does not exist." << std::endl;
+	}
+}
+
+void Voxel::clearVoxel()
+{
+	std::vector<int> keysToDelete;
+	for (const auto& chunk : m_Chunks) {
+		keysToDelete.push_back(chunk.first);
+	}
+
+	for (int key : keysToDelete) {
+		deleteChunk(key);
+	}
+	m_keyCount = 0;
+}
+
+
+
+std::vector<Quad> Chunks::GenerateQuadsGreedy()
+{
+	std::vector<Quad> quads;
+
+	// Process each face direction
+	for (int face = 0; face < 6; face++) {
+
+		int depth_coord, plane_coord1, plane_coord2;
+		int depth_size, plane_size1, plane_size2;
+
+		switch (face) {
+		case 0: case 1: // +X, -X faces (iterate through X, meshing in YZ plane)
+			depth_coord = 0; plane_coord1 = 1; plane_coord2 = 2;
+			depth_size = m_Width; plane_size1 = m_Height; plane_size2 = m_Depth;
+			break;
+		case 2: case 3: // +Y, -Y faces (iterate through Y, meshing in XZ plane)
+			depth_coord = 1; plane_coord1 = 0; plane_coord2 = 2;
+			depth_size = m_Height; plane_size1 = m_Width; plane_size2 = m_Depth;
+			break;
+		case 4: case 5: // +Z, -Z faces (iterate through Z, meshing in XY plane)
+			depth_coord = 2; plane_coord1 = 0; plane_coord2 = 1;
+			depth_size = m_Depth; plane_size1 = m_Width; plane_size2 = m_Height;
+			break;
+		}
+
+		// Slice through each layer perpendicular to the face normal
+		for (int depth = 0; depth < depth_size; depth++) {
+			// Create a mask for this slice
+			std::vector<BlockType> mask(plane_size1 * plane_size2, EMPTY);
+
+			// Fill the mask for this slice
+			for (int p2 = 0; p2 < plane_size2; p2++) {
+				for (int p1 = 0; p1 < plane_size1; p1++) {
+					// Convert plane coordinates back to x,y,z
+					int coords[3];
+					coords[depth_coord] = depth;
+					coords[plane_coord1] = p1;
+					coords[plane_coord2] = p2;
+					int x = coords[0], y = coords[1], z = coords[2];
+
+					if (shouldRenderFace(x, y, z, face)) {
+						mask[p1 + p2 * plane_size1] = at(x, y, z);
+					}
+					else {
+						mask[p1 + p2 * plane_size1] = EMPTY;
+					}
+				}
+			}
+
+			// Generate quads from the mask using greedy meshing
+			for (int p2 = 0; p2 < plane_size2; p2++) {
+				for (int p1 = 0; p1 < plane_size1; ) {
+					if (mask[p1 + p2 * plane_size1] != EMPTY) {
+						BlockType blockType = mask[p1 + p2 * plane_size1];
+
+						// Compute width (extend in p1 direction)
+						int width = 1;
+						while (p1 + width < plane_size1 &&
+							mask[(p1 + width) + p2 * plane_size1] == blockType) {
+							width++;
+						}
+
+						// Compute height (extend in p2 direction)
+						int height = 1;
+						bool canExtendHeight = true;
+						while (p2 + height < plane_size2 && canExtendHeight) {
+							// Check if the entire row can be extended
+							for (int k = 0; k < width; k++) {
+								if (mask[(p1 + k) + (p2 + height) * plane_size1] != blockType) {
+									canExtendHeight = false;
+									break;
+								}
+							}
+							if (canExtendHeight) {
+								height++;
+							}
+						}
+
+						// Create the quad
+						Quad quad;
+
+						// Convert plane coordinates back to block coordinates
+						int block_coords[3];
+						block_coords[depth_coord] = depth;
+						block_coords[plane_coord1] = p1;
+						block_coords[plane_coord2] = p2;
+
+						quad.x = block_coords[0];
+						quad.y = block_coords[1];
+						quad.z = block_coords[2];
+
+						
+						switch (face) {
+						case 0: // +X face
+						case 1: // -X face
+							quad.width = height; 
+							quad.height = width;  
+							break;
+						case 2: // +Y face
+						case 3: // -Y face		
+						case 4: // +Z face
+						case 5: // -Z face
+							quad.width = width;   
+							quad.height = height; 
+							break;
+						}
+
+						quad.face = (Face)face;
+						quad.type = blockType;
+
+						quads.push_back(quad);
+
+						// Clear the mask for the area we just processed
+						for (int h = 0; h < height; h++) {
+							for (int w = 0; w < width; w++) {
+								mask[(p1 + w) + (p2 + h) * plane_size1] = EMPTY;
+							}
+						}
+
+						p1 += width;
+					}
+					else {
+						p1++;
+					}
+				}
+			}
+		}
+	}
+
+	return quads;
 }

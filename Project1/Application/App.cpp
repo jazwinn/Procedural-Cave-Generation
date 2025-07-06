@@ -46,33 +46,37 @@ void CreateHeartShape(std::shared_ptr<Chunks> chunk)
 
 
 namespace app {
-	App::App() : m_window{}, m_graphicPipeline(m_window), m_imgui(m_window.window, "#version 130") {}
+	App::App() : m_graphicPipeline(m_window), m_imgui(m_window.window, "#version 130") {}
 
 	App::~App() {}
 
 	int App::Run() {
 		Voxel& voxel = m_graphicPipeline.Get_Voxel();
 
+		unsigned int seed = 123456789; // Fixed seed for reproducibility
+
+		//initialize Cellular Automata
 		std::vector<std::pair<int, CellularAutomata>> activeCAs;
 		bool simulate = false;
 
-		float vs = 0.5f;
-		glm::vec3 fullSize = { 10,10,10 };
-		int dimX = static_cast<int>(fullSize.x / vs),
-			dimY = static_cast<int>(fullSize.y / vs),
-			dimZ = static_cast<int>(fullSize.z / vs);
-		glm::vec3 worldSize = glm::vec3(dimX, dimY, dimZ) * vs;
-		glm::vec3 worldMin = -worldSize * 0.5f;
+		//initialize bsp
+		float voxelSize = 1.f;
+		glm::vec3 worldSize = glm::vec3{ 100,100,100 };
+		glm::vec3 worldOrigin = glm::vec3{ 0,0,0 };	
 
-		static BinarySpacePartition bsp;
+		BinarySpacePartition bsp(seed);
 
-		bsp.SetBounds(worldMin, worldSize);
+		bsp.SetBounds(worldOrigin, worldSize);
 		bsp.Update();
 
 		// Note to draw inside while loop
 		Shapes& shape = m_graphicPipeline.Get_Shapes();
 		Camera& camera = m_graphicPipeline.Get_Camera();
 
+		//int key = voxel.AddChunk(0, 0, 0, 16, 16, 16, 1.f);
+		//
+		//auto chunk = voxel.GetChunk(key);
+		//voxel.UpdateChunk(key);
 		float lastTime = static_cast<float>(glfwGetTime());
 		float deltaTime = 0.0f;
 
@@ -84,27 +88,55 @@ namespace app {
 			glfwPollEvents();
 			glClearDepth(1.0);
 			glClearColor(0.f, 0.f, 0.f, 1.f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+
 
 			// UPDATE
-			m_imgui.Update();
 			m_graphicPipeline.Update(deltaTime);
+			m_imgui.Update();
+
+			ImGui::Begin("Window");
+
+			{
+				ImGui::Text("Seed:");
+				ImGui::SameLine();
+				ImGui::PushItemWidth(80); // Set input width in pixels
+				ImGui::InputScalar("##SeedInput", ImGuiDataType_U32, &seed);
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+
+				if (ImGui::Button("Random")) {
+					seed = rand();
+				}
+			}
+
+
 			if (ImGui::Button("Generate BSP")) {
 				bsp.Update();
 				activeCAs.clear();
+				voxel.clearVoxel();
 				auto rooms = bsp.GetRooms();
 				for (auto& room : rooms) {
 					constexpr int subDim = 16;
-					glm::vec3 roomCenter = room.center + 0.5f * room.extent;
-					glm::vec3 subWorldMin = roomCenter - glm::vec3{ subDim } *vs * 0.5f;
-					int caKey = voxel.AddChunk(0, 0, 0, subDim, subDim, subDim, vs);
+
+
+					glm::vec3 extent = room.extent - glm::vec3(bsp.params.buffer);
+					//do this to avoid negative extent
+					extent = glm::max(extent, glm::vec3{ 1.f,1.f,1.f });
+
+					int caKey = voxel.AddChunk(room.center.x, room.center.y, room.center.z, extent.x, extent.y , extent.z, voxelSize);
 					auto caChunk = voxel.GetChunk(caKey);
-					CellularAutomata ca;
-					ca.SetChunk(caChunk, subWorldMin, glm::vec3(subDim) * vs);
-					ca.SetSeeds({ room });
-					voxel.UpdateChunk(caKey);
-					activeCAs.emplace_back(caKey, std::move(ca));
+
+					//CellularAutomata ca;
+					// glm::vec3 roomCenter = room.center + 0.5f * room.extent;
+					//glm::vec3 subWorldMin = roomCenter - glm::vec3{ subDim } *voxelSize * 0.5f;
+					//ca.SetChunk(caChunk, subWorldMin, glm::vec3(subDim) * voxelSize);
+					//ca.SetSeeds({ room });
+					//
+					//activeCAs.emplace_back(caKey, std::move(ca));
 				}
+
+				voxel.UpdateAllChunk();
 			}
 
 			static int frameCounter = 0;
@@ -124,6 +156,14 @@ namespace app {
 				ImGui::End();
 			}
 
+
+
+			bsp.DrawImgui();
+
+
+			ImGui::End();
+			
+
 			if (simulate) {
 				if (++frameCounter >= framesPerStep) {
 					frameCounter = 0;
@@ -136,9 +176,20 @@ namespace app {
 				}
 			}
 
+
+
+
+
+
+
+
+
+
+
+
 			// DRAW
-			m_graphicPipeline.Draw();
 			bsp.Draw(shape, camera.GetViewProjectionMatrix(), glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+			m_graphicPipeline.Draw();
 			m_imgui.Render();
 
 			glfwSwapBuffers(m_window.window);

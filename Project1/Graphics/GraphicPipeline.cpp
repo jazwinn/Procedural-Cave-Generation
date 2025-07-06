@@ -15,20 +15,20 @@ namespace graphic {
 			pipeline->Get_Camera().Resize(width, height);
 
 		glScissor(0, 0, width, height);
+		}
 	}
 
-	GraphicPipeline::GraphicPipeline(window::Window& window):
+	GraphicPipeline::GraphicPipeline(window::Window& _window):
 		m_genericShader("./Graphics/Shaders/genericVertexShader.vert", "./Graphics/Shaders/genericFragmentShader.frag"),
 		m_InstancedShader("./Graphics/Shaders/instancedVertexShader.vert", "./Graphics/Shaders/instancedFragmentShader.frag"),
-		m_window{window},
+		m_window{ _window },
 		m_Shapes{m_genericShader, m_InstancedShader},
 		m_voxel{ m_InstancedShader },
 		m_camera(m_window.getWindowWidth(), m_window.getWindowHeigth())
 	{
 		//Callbacks
-		glfwSetWindowUserPointer(window.window, this);
-		glfwSetWindowSizeCallback(window.window, sizeCallback);
-		//glfwSetWindowMaximizeCallback(window.window, sizeCallback);
+		glfwSetWindowUserPointer(m_window.window, this);
+		glfwSetWindowSizeCallback(m_window.window, sizeCallback);
 
 	}
 
@@ -51,7 +51,7 @@ namespace graphic {
 			auto side = glm::normalize(glm::cross(m_camera.direction, { 0, 1, 0 }));
 			auto up = glm::normalize(glm::cross(m_camera.direction, side));
 
-			float speed = 10.0f;
+			float speed = 40.0f;
 			if (glfwGetKey(m_window.window, GLFW_KEY_W) != 0) {
 				m_camera.SetPosition(m_camera.GetPosition() + glm::normalize(m_camera.direction) * dt * speed);
 			}
@@ -83,6 +83,8 @@ namespace graphic {
 		m_camera.prevMouseCursor = glm::vec2{cursor_x, cursor_y};
 	}
 
+
+
 	void GraphicPipeline::Draw() {
 		glEnable(GL_SCISSOR_TEST);
 		glEnable(GL_DEPTH_TEST);
@@ -93,7 +95,6 @@ namespace graphic {
 		//INSTANCED
 		m_voxel.DrawVoxel(m_camera.GetViewProjectionMatrix(), glm::vec4{ 1,0,0,0.2 }, GL_LINES);
 
-		//SINGLE
-		m_Shapes.Draw_Rectangle(m_camera.GetViewProjectionMatrix(), glm::vec3{ 0,0,0 }, glm::vec3{ 10,10,10 }, glm::vec4{ 1,1,1,1 }, DrawType::WIREFRAME);
+
 	}
 }

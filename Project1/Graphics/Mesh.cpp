@@ -50,7 +50,7 @@ Mesh::~Mesh()
 
 void Mesh::Draw(GLenum mode)
 {
-	if (m_instance == 1) {
+	if (m_instance <= 1) {
 		m_VAO.Bind();
 		glDrawElements(mode, m_indexCount, GL_UNSIGNED_INT, 0);
 		m_VAO.Unbind();
