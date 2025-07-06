@@ -1,4 +1,5 @@
 #include "Perlin.hpp"
+#include "imgui.h"
 
 void PerlinNoise::Update() {
 	if (!m_chunk) { return; }

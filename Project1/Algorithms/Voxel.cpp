@@ -187,6 +187,8 @@ void Voxel::DrawVoxel(const glm::mat4& vp, const glm::vec4& color, GLenum mode)
 		m_modified = false;
 	}
 
+	if (m_transforms.empty()) return;
+
 	m_Shader.setUniform("uniform_m2w", vp);
 	m_Shader.setUniform("uniform_color", color);
 

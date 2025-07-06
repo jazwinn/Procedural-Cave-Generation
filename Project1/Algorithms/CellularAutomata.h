@@ -12,6 +12,8 @@ struct CAParams {
 	int   birthLimit = 4;		// walls born if neighbors > this
 	int   deathLimit = 3;		// walls die if neighbors < this
 	int   maxIterations = 10;
+    bool  spreadingMode = false;
+    int   numSeeds = 1;
 };
 
 class CellularAutomata : public Generator {

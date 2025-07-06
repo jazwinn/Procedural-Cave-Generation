@@ -50,7 +50,7 @@ namespace app {
 	App::App() : m_graphicPipeline(m_window), m_imgui(m_window.window, "#version 130") {}
 
 	App::~App() {}
-
+	CAParams caParams;
 	int App::Run() {
 		Voxel& voxel = m_graphicPipeline.Get_Voxel();
 
@@ -74,7 +74,7 @@ namespace app {
 		Camera& camera = m_graphicPipeline.Get_Camera();
 
 		//int key = voxel.AddChunk(0, 0, 0, 16, 16, 16, 1.f);
-		//
+		////
 		//auto chunk = voxel.GetChunk(key);
 		//voxel.UpdateChunk(key);
 		float lastTime = static_cast<float>(glfwGetTime());
@@ -134,7 +134,8 @@ namespace app {
 					auto caChunk = voxel.GetChunk(caKey);
 
 					CellularAutomata ca(seed);
-					 glm::vec3 roomCenter = room.center + 0.5f * room.extent;
+					ca.GetParams() = caParams; 
+					glm::vec3 roomCenter = room.center + 0.5f * room.extent;
 					glm::vec3 subWorldMin = roomCenter - glm::vec3{ subDim } * voxelSize * 0.5f;
 					ca.SetChunk(caChunk, subWorldMin, glm::vec3(subDim) * voxelSize);
 					ca.SetSeeds({ room });
@@ -150,9 +151,6 @@ namespace app {
 			bsp.DrawImgui();
 			m_graphicPipeline.DrawImgui();
 
-			
-
-
 			if (ImGui::CollapsingHeader("Controls")) {
 				ImGui::Checkbox("Run", &simulate);
 				if (ImGui::Button("Step CA")) {
@@ -163,9 +161,25 @@ namespace app {
 						}
 					}
 				}
+
+				if (!activeCAs.empty() && ImGui::CollapsingHeader("CA Settings")) {
+					if (ImGui::TreeNode("Cellular Automata Parameters")) {
+						ImGui::Checkbox("Spreading Mode", &caParams.spreadingMode);
+						if (caParams.spreadingMode) {
+							ImGui::SliderInt("Seed Count", &caParams.numSeeds, 1, 10);
+						}
+						else {
+							ImGui::SliderFloat("Wall Probability", &caParams.wallProb, 0.0f, 1.0f);
+							ImGui::SliderInt("Birth Limit", &caParams.birthLimit, 1, 8);
+							ImGui::SliderInt("Death Limit", &caParams.deathLimit, 1, 8);
+						}
+						ImGui::SliderInt("Max Iterations", &caParams.maxIterations, 1, 20);
+						ImGui::TreePop();
+					}
+				}
+
 				ImGui::Separator();
 			}
-
 
 			if (simulate) {
 				for (auto& [key, ca] : activeCAs) {
@@ -177,20 +191,7 @@ namespace app {
 				}
 			}
 
-
-
 			ImGui::End();
-
-
-
-
-
-
-
-
-
-
-
 
 			// DRAW
 			bsp.Draw(shape, camera.GetViewProjectionMatrix(), glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
