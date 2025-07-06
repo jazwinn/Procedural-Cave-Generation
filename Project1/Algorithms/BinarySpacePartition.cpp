@@ -1,4 +1,5 @@
 #include "BinarySpacePartition.h"
+#include "imgui.h"
 
 void BinarySpacePartition::Update() {
 	m_lines.clear();
@@ -21,8 +22,14 @@ void BinarySpacePartition::DrawImgui() {
         ImGui::SliderInt("Max Depth", &params.maxDepth, 1, 10);
 		ImGui::SliderInt("Buffer", &params.buffer, 0, 20);
         ImGui::SliderFloat("Balance", &params.balance, 0.1f, 0.45f);
-        ImGui::InputFloat3("Origin", &m_origin.x);
-        ImGui::InputFloat3("Size", &m_size.x);
+        ImGui::SliderFloat3("Origin", &m_origin.x, -100, 100);
+        ImGui::SliderFloat3("Size", &m_size.x, 0.1, 100);
+		ImGui::Checkbox("Random Rooms", &params.randomRooms);
+		if (params.randomRooms) {
+			ImGui::SliderInt("Min Room", &params.randomRoomCount, 1, 100);
+		}
+
+
         ImGui::TreePop();
     }
 }

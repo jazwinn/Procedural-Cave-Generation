@@ -19,6 +19,10 @@ enum Face {
 	NEG_Z = 5  // -Z
 };
 
+struct VoxelConfig {
+	bool greedy = true;
+};
+
 struct Quad {
 	int x, y, z;
 	int width, height;
@@ -124,8 +128,8 @@ public:
 		return nullptr;
 	}
 
-private:
-
+public:
+	VoxelConfig config;
 
 
 private:

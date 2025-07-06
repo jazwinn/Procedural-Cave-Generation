@@ -16,7 +16,7 @@ struct CAParams {
 
 class CellularAutomata : public Generator {
 public:
-    CellularAutomata();
+    CellularAutomata(unsigned int& seed) : m_seed{ seed } {};
     void SetChunk(std::shared_ptr<Chunks> chunk, const glm::vec3& worldMin, const glm::vec3& worldSize);
     void SetSeeds(const std::vector<BinarySpacePartition::Room>& rooms);
     void Update() override;
@@ -35,6 +35,7 @@ private:
     CAParams m_params;
     int m_currentIter{ 0 };
     bool m_completed{ false };
+	unsigned int& m_seed;
 
 };
 

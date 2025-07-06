@@ -5,6 +5,7 @@
 #include "window.h"
 #include "GraphicPipeline.h"
 #include "ImguiHandler.h"
+#include "RandomAlgo.h"
 
 namespace app {
 	class App {

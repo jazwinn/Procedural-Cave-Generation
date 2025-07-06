@@ -83,8 +83,14 @@ void Voxel::UpdateChunk(int key)
 	auto it = m_Chunks.find(key);
 	if (it != m_Chunks.end()) {
 		// Chunk exists, update it
-       // std::vector<Quad> quads = it->second->GenerateQuads();
-		std::vector<Quad> quads = it->second->GenerateQuadsGreedy();
+		std::vector<Quad> quads;
+		if (config.greedy) {
+			quads = it->second->GenerateQuadsGreedy();
+		}
+		else {
+			quads = it->second->GenerateQuads();
+		}
+		
 		std::vector<glm::mat4x4> transforms;
 
 		float scaleFactor = it->second->GetScale(); // Scale factor for the cubes

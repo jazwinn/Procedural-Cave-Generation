@@ -1,6 +1,6 @@
 #include "GraphicPipeline.h"
 #include <stb_image.h>
-
+#include "imgui.h"
 #include <algorithm>
 
 namespace graphic { 
@@ -97,4 +97,14 @@ namespace graphic {
 
 
 	}
+
+	void GraphicPipeline::DrawImgui()
+	{
+		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+		if (ImGui::TreeNode("Graphics Setting")) {
+			ImGui::Checkbox("Greedy", &m_voxel.config.greedy);
+			ImGui::TreePop();
+		}
+	}
+
 }

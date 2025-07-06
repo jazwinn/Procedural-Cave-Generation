@@ -24,6 +24,8 @@ namespace graphic {
 		
 		void Update(float dt);
 		void Draw();
+		void DrawImgui();
+
 
 		Camera& Get_Camera() { return m_camera; }
 		Voxel& Get_Voxel() { return m_voxel;}

@@ -2,6 +2,7 @@
 #include <cmath>
 #include <iostream>
 
+
 void CreateHeartShape(std::shared_ptr<Chunks> chunk)
 {
 	if (!chunk) return;
@@ -67,7 +68,6 @@ namespace app {
 		BinarySpacePartition bsp(seed);
 
 		bsp.SetBounds(worldOrigin, worldSize);
-		bsp.Update();
 
 		// Note to draw inside while loop
 		Shapes& shape = m_graphicPipeline.Get_Shapes();
@@ -116,10 +116,16 @@ namespace app {
 				activeCAs.clear();
 				voxel.clearVoxel();
 				auto rooms = bsp.GetRooms();
+				std::vector<bool> randomRooms = RandomClass::GenerateMinTrue(seed, bsp.params.randomRoomCount, rooms.size());
+				
+				int count{};
 				for (auto& room : rooms) {
+					if (bsp.params.randomRooms && !randomRooms[count]) {
+						count++;
+						continue;
+					}
+
 					constexpr int subDim = 16;
-
-
 					glm::vec3 extent = room.extent - glm::vec3(bsp.params.buffer);
 					//do this to avoid negative extent
 					extent = glm::max(extent, glm::vec3{ 1.f,1.f,1.f });
@@ -127,22 +133,27 @@ namespace app {
 					int caKey = voxel.AddChunk(room.center.x, room.center.y, room.center.z, extent.x, extent.y , extent.z, voxelSize);
 					auto caChunk = voxel.GetChunk(caKey);
 
-					//CellularAutomata ca;
-					// glm::vec3 roomCenter = room.center + 0.5f * room.extent;
-					//glm::vec3 subWorldMin = roomCenter - glm::vec3{ subDim } *voxelSize * 0.5f;
-					//ca.SetChunk(caChunk, subWorldMin, glm::vec3(subDim) * voxelSize);
-					//ca.SetSeeds({ room });
-					//
-					//activeCAs.emplace_back(caKey, std::move(ca));
+					CellularAutomata ca(seed);
+					 glm::vec3 roomCenter = room.center + 0.5f * room.extent;
+					glm::vec3 subWorldMin = roomCenter - glm::vec3{ subDim } * voxelSize * 0.5f;
+					ca.SetChunk(caChunk, subWorldMin, glm::vec3(subDim) * voxelSize);
+					ca.SetSeeds({ room });
+					
+					activeCAs.emplace_back(caKey, std::move(ca));
+
+					count++;
 				}
 
 				voxel.UpdateAllChunk();
 			}
 
-			static int frameCounter = 0;
-			const int framesPerStep = 256;
+			bsp.DrawImgui();
+			m_graphicPipeline.DrawImgui();
 
-			if (ImGui::Begin("Controls")) {
+			
+
+
+			if (ImGui::CollapsingHeader("Controls")) {
 				ImGui::Checkbox("Run", &simulate);
 				if (ImGui::Button("Step CA")) {
 					for (auto& [key, ca] : activeCAs) {
@@ -153,28 +164,22 @@ namespace app {
 					}
 				}
 				ImGui::Separator();
-				ImGui::End();
 			}
 
 
-
-			bsp.DrawImgui();
-
-
-			ImGui::End();
-			
-
 			if (simulate) {
-				if (++frameCounter >= framesPerStep) {
-					frameCounter = 0;
-					for (auto& [key, ca] : activeCAs) {
-						if (!ca.IsComplete()) {
-							ca.Update();
-							voxel.UpdateChunk(key);
-						}
+				for (auto& [key, ca] : activeCAs) {
+					if (!ca.IsComplete()) {
+						std::cout << "CA updating" << std::endl;
+						ca.Update();
+						voxel.UpdateChunk(key);
 					}
 				}
 			}
+
+
+
+			ImGui::End();
 
 
 
