@@ -51,8 +51,7 @@ std::vector<Quad> Chunks::GenerateQuads() {
 
 Voxel::Voxel(Shader& shader):
 	m_modified{ false },
-	m_Shader{ shader }, 
-	m_keyCount(0)
+	m_Shader{ shader }
 {
 
     std::vector<GLfloat> verticesQuad = {
@@ -187,6 +186,8 @@ void Voxel::DrawVoxel(const glm::mat4& vp, const glm::vec4& color, GLenum mode)
 		m_modified = false;
 	}
 
+	if (m_transforms.empty()) return;
+
 	m_Shader.setUniform("uniform_m2w", vp);
 	m_Shader.setUniform("uniform_color", color);
 
@@ -236,7 +237,6 @@ void Voxel::clearVoxel()
 	for (int key : keysToDelete) {
 		deleteChunk(key);
 	}
-	m_keyCount = 0;
 }
 
 
@@ -371,4 +371,57 @@ std::vector<Quad> Chunks::GenerateQuadsGreedy()
 	}
 
 	return quads;
+}
+
+std::optional<std::reference_wrapper<BlockType>> Chunks::GetWorldBlock(int x, int y, int z)
+{
+	int localX = x;
+	int localY = y;
+	int localZ = z;
+
+	int chunkOffsetX = 0, chunkOffsetY = 0, chunkOffsetZ = 0;
+
+	// Wrap coordinate into the local chunk or figure out neighbor chunk
+	if (x < 0) {
+		chunkOffsetX = -1;
+		localX = m_Width + x;
+	}
+	else if (x >= m_Width) {
+		chunkOffsetX = 1;
+		localX = x - m_Width;
+	}
+
+	if (y < 0) {
+		chunkOffsetY = -1;
+		localY = m_Height + y;
+	}
+	else if (y >= m_Height) {
+		chunkOffsetY = 1;
+		localY = y - m_Height;
+	}
+
+	if (z < 0) {
+		chunkOffsetZ = -1;
+		localZ = m_Depth + z;
+	}
+	else if (z >= m_Depth) {
+		chunkOffsetZ = 1;
+		localZ = z - m_Depth;
+	}
+
+	if (chunkOffsetX == 0 && chunkOffsetY == 0 && chunkOffsetZ == 0) {
+		return at(localX, localY, localZ);
+	}
+
+	if (m_Voxel) return std::nullopt;
+
+	std::shared_ptr<Chunks> neighbor = m_Voxel->GetChunk( m_X + chunkOffsetX, m_Y + chunkOffsetY, m_Z + chunkOffsetZ);
+
+	if (!neighbor) return std::nullopt;
+	return std::ref(neighbor->at(localX, localY, localZ));
+}
+
+void Chunks::FillChunk(BlockType type)
+{
+	std::fill(m_Blocks.begin(), m_Blocks.end(), type); // Fill the entire chunk with the specified block type
 }

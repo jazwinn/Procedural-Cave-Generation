@@ -31,3 +31,26 @@ std::vector<bool> RandomClass::GenerateMinTrue(unsigned int seed, unsigned int m
 
 	return results;
 }
+
+std::vector<bool> RandomClass::GenerateMaxTrue(unsigned int seed, unsigned int maxTrue, unsigned int maxSize)
+{
+	if (maxTrue > maxSize) {
+		maxTrue = maxSize;
+	}
+
+
+	std::vector<bool> results(maxSize, false);
+	std::mt19937 rng(seed);
+
+
+	// First, set 3 guaranteed trues
+	for (int i = 0; i < maxTrue; ++i) {
+		results[i] = true;
+	}
+
+
+	// Shuffle the result so guaranteed trues aren't always at the start
+	std::shuffle(results.begin(), results.end(), rng);
+
+	return results;
+}

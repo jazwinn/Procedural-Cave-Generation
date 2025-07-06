@@ -21,12 +21,12 @@ void BinarySpacePartition::DrawImgui() {
         ImGui::SliderInt("Min Room Size", &params.minSize, 1, m_size.x/2);
         ImGui::SliderInt("Max Depth", &params.maxDepth, 1, 10);
 		ImGui::SliderInt("Buffer", &params.buffer, 0, 20);
-        ImGui::SliderFloat("Balance", &params.balance, 0.1f, 0.45f);
+        ImGui::SliderFloat("Balance", &params.balance, 0.01f, 0.49f);
         ImGui::SliderFloat3("Origin", &m_origin.x, -100, 100);
         ImGui::SliderFloat3("Size", &m_size.x, 0.1, 100);
 		ImGui::Checkbox("Random Rooms", &params.randomRooms);
 		if (params.randomRooms) {
-			ImGui::SliderInt("Min Room", &params.randomRoomCount, 1, 100);
+			ImGui::SliderInt("Max Room", &params.maxRoomCount, 1, 100);
 		}
 
 

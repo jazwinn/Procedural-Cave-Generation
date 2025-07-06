@@ -2,8 +2,13 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <optional>
+
 #include "Mesh.h"
 #include "Shader.h"
+
+class Voxel;
+
 
 enum BlockType {
 	EMPTY = 0,
@@ -32,13 +37,13 @@ struct Quad {
 
 class Chunks {
 public:
-	Chunks(float _x, float _y, float _z, int chunkWidth, int chunkHeight, int chunkDepth, float chunkScale = 1.f):
+	Chunks(float _x, float _y, float _z, int chunkWidth, int chunkHeight, int chunkDepth, float chunkScale = 1.f, BlockType type = EMPTY) :
 		m_X(_x - (chunkWidth * chunkScale) / 2.f + chunkScale * 0.5f),
 		m_Y(_y - (chunkHeight * chunkScale) / 2.f + chunkScale * 0.5f),
 		m_Z(_z - (chunkDepth * chunkScale) / 2.f + chunkScale * 0.5f),
-		m_Width(chunkWidth), m_Height(chunkHeight), m_Depth(chunkDepth), m_ScaleFactor(chunkScale) 
+		m_Width(chunkWidth), m_Height(chunkHeight), m_Depth(chunkDepth), m_ScaleFactor(chunkScale)
 	{
-		m_Blocks.resize(m_Width * m_Height * m_Depth, SOLID); // Initialize all blocks to SOLID
+		m_Blocks.resize(m_Width * m_Height * m_Depth, type); // Initialize all blocks to EMPTY
 	}
 
 
@@ -49,12 +54,19 @@ public:
 		return m_Blocks[x + y * m_Width + z * m_Width * m_Height];
 	}
 
+	void SetWorld(Voxel* voxel) {
+		m_Voxel = voxel;
+	}
+
 	int GetWidth() const { return m_Width; }
 	int GetHeight() const { return m_Height; }
 	int GetDepth() const { return m_Depth; }
 	float GetScale() const { return m_ScaleFactor; }
 	glm::vec3 GetPosition() const { return glm::vec3(m_X, m_Y, m_Z); }
-   
+
+
+	std::optional<std::reference_wrapper<BlockType>>  GetWorldBlock(int x, int y, int z);
+	void FillChunk(BlockType type);
 
 private:
 
@@ -87,7 +99,9 @@ private:
 
 	std::vector<BlockType> m_Blocks; // 3D vector to hold block types
 
-	
+	Voxel* m_Voxel = nullptr;
+
+
 };
 
 class Voxel {
@@ -104,9 +118,9 @@ public:
 	void deleteChunk(int key);
 	void clearVoxel();
 
-	int AddChunk(float x, float y, float z, int width, int height, int depth, float scale = 1.f) {
-		int key = m_keyCount++;
-		m_Chunks[key] = std::make_unique<Chunks>(x, y, z, width, height, depth, scale);
+	int AddChunk(float x, float y, float z, int width, int height, int depth, float scale = 1.f, BlockType type = EMPTY) {
+		int key = (int)x + ((int)y << 8) + ((int)z << 24);
+		m_Chunks[key] = std::make_unique<Chunks>(x, y, z, width, height, depth, scale, type);
 
 		return key;
 	}
@@ -130,7 +144,7 @@ public:
 
 public:
 	VoxelConfig config;
-
+	glm::vec4 color{ 0.7,0.7,0.7,0.2 };
 
 private:
 	std::unordered_map<int, std::shared_ptr<Chunks>> m_Chunks; // Map to hold chunks by their position
@@ -139,6 +153,5 @@ private:
 	std::unique_ptr<Mesh> m_InstancedQuad;
 
 	bool m_modified;
-	int m_keyCount;
 	Shader& m_Shader; // Reference to the shader for rendering
 };
