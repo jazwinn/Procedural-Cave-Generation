@@ -9,12 +9,17 @@
 #include "VAO.h"
 #include "VBO.h"
 #include "EBO.h"
-#include "Shapes.h"
+#include "DrawShapes.h"
 #include "Camera.h"
 #include "Voxel.h"
 
 
 namespace graphic {
+
+	struct GraphicConfig {
+		bool backFaceCulling = true; // Enable backface culling
+	};
+
 	class GraphicPipeline
 	{
 	public:
@@ -31,6 +36,8 @@ namespace graphic {
 		Voxel& Get_Voxel() { return m_voxel;}
 		Shapes& Get_Shapes() { return m_Shapes; }
 
+
+		GraphicConfig config;
 	
 	private:
 

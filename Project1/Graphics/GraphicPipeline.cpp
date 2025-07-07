@@ -23,7 +23,7 @@ namespace graphic {
 		m_InstancedShader("./Graphics/Shaders/instancedVertexShader.vert", "./Graphics/Shaders/instancedFragmentShader.frag"),
 		m_window{ _window },
 		m_Shapes{m_genericShader, m_InstancedShader},
-		m_voxel{ m_InstancedShader },
+		m_voxel{ m_InstancedShader , m_genericShader},
 		m_camera(m_window.getWindowWidth(), m_window.getWindowHeigth())
 	{
 		//Callbacks
@@ -88,9 +88,16 @@ namespace graphic {
 	void GraphicPipeline::Draw() {
 		glEnable(GL_SCISSOR_TEST);
 		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-		glFrontFace(GL_CCW);
+
+		if (config.backFaceCulling) {
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+			glFrontFace(GL_CCW);
+		}
+		else {
+			glDisable(GL_CULL_FACE);
+		}
+
 
 		//INSTANCED
 		m_voxel.DrawVoxel(m_camera.GetViewProjectionMatrix(), m_voxel.color, GL_LINES);
@@ -103,7 +110,10 @@ namespace graphic {
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 		if (ImGui::CollapsingHeader("Graphics Setting")) {
 			ImGui::Checkbox("Greedy", &m_voxel.config.greedy);
+			ImGui::Checkbox("Smooth", &m_voxel.config.marchingCube);
 			ImGui::ColorEdit4("Voxel Color", &m_voxel.color.x);
+			ImGui::Separator();
+			ImGui::Checkbox("Back Face Culling", &config.backFaceCulling);
 		}
 	}
 

@@ -9,7 +9,6 @@
 
 class Voxel;
 
-
 enum BlockType {
 	EMPTY = 0,
 	SOLID = 1
@@ -26,6 +25,8 @@ enum Face {
 
 struct VoxelConfig {
 	bool greedy = true;
+	bool marchingCube = false; // Use marching cubes algorithm
+
 };
 
 struct Quad {
@@ -33,6 +34,11 @@ struct Quad {
 	int width, height;
 	Face face;
 	BlockType type;
+};
+
+struct MarchingCube {
+	std::vector<glm::vec3> vertices;
+	std::vector<GLuint> indices;
 };
 
 class Chunks {
@@ -50,18 +56,31 @@ public:
 	std::vector<Quad> GenerateQuads();
 	std::vector<Quad> GenerateQuadsGreedy();
 
+	//marching cube tbc
+	MarchingCube GenerateVertices();
+
 	BlockType& at(int x, int y, int z) {
 		return m_Blocks[x + y * m_Width + z * m_Width * m_Height];
 	}
 
+
 	void SetWorld(Voxel* voxel) {
 		m_Voxel = voxel;
+	}
+
+	bool isSolid(int x, int y, int z) {
+		if (x < 0 || x >= m_Width || y < 0 || y >= m_Height || z < 0 || z >= m_Depth) {
+			return false; // Consider out-of-bounds as empty
+		}
+		return at(x, y, z) != EMPTY;
 	}
 
 	int GetWidth() const { return m_Width; }
 	int GetHeight() const { return m_Height; }
 	int GetDepth() const { return m_Depth; }
 	float GetScale() const { return m_ScaleFactor; }
+
+	//get bottom left
 	glm::vec3 GetPosition() const { return glm::vec3(m_X, m_Y, m_Z); }
 
 
@@ -71,12 +90,7 @@ public:
 private:
 
 	// Helper function to check if a block is solid
-	bool isSolid(int x, int y, int z) {
-		if (x < 0 || x >= m_Width || y < 0 || y >= m_Height || z < 0 || z >= m_Depth) {
-			return false; // Consider out-of-bounds as empty
-		}
-		return at(x, y, z) != EMPTY;
-	}
+
 
 
 	// Check if a face should be rendered (adjacent block is empty or out of bounds)
@@ -106,7 +120,7 @@ private:
 
 class Voxel {
 public:
-	Voxel(Shader& shader);// load graphics
+	Voxel(Shader& instancedShader, Shader& shader);// load graphics
 	~Voxel() = default;
 
 
@@ -148,10 +162,15 @@ public:
 
 private:
 	std::unordered_map<int, std::shared_ptr<Chunks>> m_Chunks; // Map to hold chunks by their position
+	
 	std::unordered_map<int, std::vector<glm::mat4x4>> m_ChunkTransforms; // Map to hold transforms for each chunk
 	std::vector<glm::mat4x4> m_transforms;
+
+	std::unordered_map<int, MarchingCube> m_ChunkMarchingMesh; // Map to hold transforms for each chunk
+
 	std::unique_ptr<Mesh> m_InstancedQuad;
 
 	bool m_modified;
-	Shader& m_Shader; // Reference to the shader for rendering
+	Shader& m_InstancedShader; // Reference to the shader for rendering
+	Shader& m_Shader; // Reference to the shader for batch rendering
 };

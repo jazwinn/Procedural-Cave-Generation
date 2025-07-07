@@ -1,4 +1,4 @@
-#include "Shapes.h"
+#include "DrawShapes.h"
 
 Shapes::Shapes(Shader& shader, Shader& instancedShader):
 	m_Shader(shader),

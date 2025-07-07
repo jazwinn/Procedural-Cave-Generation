@@ -4,7 +4,6 @@ Mesh::Mesh(std::vector<GLfloat>& vboData, std::vector<GLuint>& eboData, GLuint i
 	m_vertices{ vboData },
 	m_indices{ eboData },
 	m_instance{instance},
-	m_VAO{},
 	m_EBO(eboData),
 	m_VBO(vboData, target, DrawType),
 	m_instanceVBO(instanceMatrix, target, DrawType)
