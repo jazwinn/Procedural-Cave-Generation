@@ -1,5 +1,6 @@
 #include "Perlin.hpp"
 #include "Imgui.h"
+#include "RandomAlgo.h"
 
 WormParams PerlinWorm::m_params;
 
@@ -123,6 +124,10 @@ float PerlinOctave(float x, float y, float z, float octave, float persistence)
 
 void PerlinNoise::Update() {
 	if (!m_chunk) { return; }
+
+
+
+
 	for (int z = 0; z < m_depth; ++z) {
 		for (int y = 0; y < m_height; ++y) {
 			for (int x = 0; x < m_width; ++x) {
@@ -197,12 +202,20 @@ void PerlinWorm::SetChunk(std::shared_ptr<Chunks> chunk, const glm::vec3& worldM
 }
 
 void PerlinWorm::ApplyPerlin(BlockType type) {
+
+
+	srand(m_seed);
+
+	float seedX = RandomClass::randomFloat(0.f, 100.f);
+	float seedY = RandomClass::randomFloat(0.f, 100.f);
+	float seedZ = RandomClass::randomFloat(0.f, 100.f);
+
 	for (int z = 0; z < m_depth; ++z) {
 		for (int y = 0; y < m_height; ++y) {
 			for (int x = 0; x < m_width; ++x) {
-				float nx = static_cast<float>(x) / m_width * m_params.scale;
-				float ny = static_cast<float>(y) / m_height * m_params.scale;
-				float nz = static_cast<float>(z) / m_depth * m_params.scale;
+				float nx = static_cast<float>(x) / m_width * m_params.scale + seedX;
+				float ny = static_cast<float>(y) / m_height * m_params.scale + seedY;
+				float nz = static_cast<float>(z) / m_depth * m_params.scale + seedZ;
 				float d = PerlinOctave(nx, ny, nz, m_params.octave, m_params.octavePersistence) * 0.5f + 0.5f;
 				if (d < m_params.threshold) {
 					m_chunk->at(x, y, z) = type;

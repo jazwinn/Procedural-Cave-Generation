@@ -4,7 +4,7 @@
 #define BINARYSPACEPARTITION_H
 
 #include "Generator.h"
-#include "Shapes.h"
+#include "DrawShapes.h"
 
 
 struct BSPParams {

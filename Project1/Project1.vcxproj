@@ -166,7 +166,7 @@
     <ClCompile Include="Algorithms\Voxel.cpp" />
     <ClCompile Include="Imgui\ImguiHandler.cpp" />
     <ClCompile Include="Graphics\Mesh.cpp" />
-    <ClCompile Include="Graphics\Shapes.cpp" />
+    <ClCompile Include="Graphics\DrawShapes.cpp" />
     <ClCompile Include="Algorithms\RandomAlgo.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -186,7 +186,7 @@
     <ClInclude Include="Algorithms\Voxel.h" />
     <ClInclude Include="Imgui\ImguiHandler.h" />
     <ClInclude Include="Graphics\Mesh.h" />
-    <ClInclude Include="Graphics\Shapes.h" />
+    <ClInclude Include="Graphics\DrawShapes.h" />
     <ClInclude Include="Algorithms\RandomAlgo.h" />
   </ItemGroup>
   <ItemGroup>

@@ -52,6 +52,8 @@ private:
 
 class PerlinWorm : public Generator {
 public:
+	PerlinWorm(unsigned int& seed) : m_seed(seed) {}
+
     void Update() override;
     void Draw(Shapes&, const glm::mat4&, const glm::vec4&) override {}
     void DrawImgui() override;
@@ -65,6 +67,7 @@ private:
     std::vector<BinarySpacePartition::Room> m_rooms; 
     glm::vec3 m_worldMin, m_worldSize;
     int m_width, m_height, m_depth;
+	unsigned int& m_seed;
     static WormParams m_params;
 
     

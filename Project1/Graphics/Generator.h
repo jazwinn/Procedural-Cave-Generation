@@ -2,7 +2,7 @@
 #ifndef GENERATOR_H
 #define GENERATOR_H
 
-#include "Shapes.h"
+#include "DrawShapes.h"
 #include "Voxel.h"
 
 class Generator {

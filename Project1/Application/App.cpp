@@ -125,7 +125,7 @@ namespace app {
 								chunks->FillChunk(SOLID);
 							}
 
-							PerlinWorm perlinWorm;
+							PerlinWorm perlinWorm(seed);
 							perlinWorm.SetChunk(chunks, subWorldMin, glm::vec3(subDim) * voxelSize);
 							perlinWorm.SetRooms({ room });
 							perlinWorm.ApplyPerlin();
@@ -155,7 +155,7 @@ namespace app {
 					}
 
 					if (perlinWorm) {
-						PerlinWorm perlinWorm;
+						PerlinWorm perlinWorm(seed);
 						perlinWorm.SetChunk(chunk, subWorldMin, glm::vec3(16) * voxelSize);
 						perlinWorm.SetRooms({ BinarySpacePartition::Room{ roomCenter , glm::vec3(100) } });
 						perlinWorm.Update();
@@ -273,6 +273,7 @@ namespace app {
 				float yMax = maxFps + 1.0f;
 
 				ImGui::PlotLines("##", FpsValues, IM_ARRAYSIZE(FpsValues), FpsValues_offset, overlay, yMin, yMax, ImVec2(260.f, 120.0f));
+
 
 			}
 
