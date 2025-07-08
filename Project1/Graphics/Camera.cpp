@@ -33,8 +33,11 @@ void Camera::UpdateProjection() {
 	/*float halfWidth = (viewportWidth / zoom) * 0.5f;
 	float halfHeight = (viewportHeight / zoom) * 0.5f;
 	projectionMatrix = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, nearClipPlane, farClipPlane);*/
-	projectionMatrix = glm::perspective(glm::radians(fovDegree), aspectRatio , nearClipPlane, farClipPlane);
-}
+	if (aspectRatio >= 0) {
+		projectionMatrix = glm::perspective(glm::radians(fovDegree), aspectRatio, nearClipPlane, farClipPlane);
+	}
+	}
+	
 
 void Camera::UpdateView() {
 	//glm::mat4 result = glm::mat4{ 1.0f };

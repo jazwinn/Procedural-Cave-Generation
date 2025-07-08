@@ -22,9 +22,9 @@ void CellularAutomata::SetSeeds(const std::vector<BinarySpacePartition::Room>& r
     std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 
     for (auto& room : rooms) {
-        glm::vec3 roomCenter = room.center + room.extent * 0.5f;
-        glm::vec3 roomMin = room.center;
-        glm::vec3 roomMax = room.center + room.extent;
+        glm::vec3 roomCenter = room.StartPoint + room.extent * 0.5f;
+        glm::vec3 roomMin = room.StartPoint;
+        glm::vec3 roomMax = room.StartPoint + room.extent;
         auto worldToCell = [&](glm::vec3 ws) {
             glm::vec3 norm = (ws - m_worldMin) / m_worldSize;         
             return glm::ivec3{

@@ -3,9 +3,11 @@
 #include <iostream>
 #include <chrono>
 
+#include "VoxelWorld.h"
 #include "BinarySpacePartition.h"
 #include "CellularAutomata.h"
 #include "Perlin.hpp"
+
 
 
 
@@ -15,27 +17,30 @@ namespace app {
 	App::~App() {}
 
 	int App::Run() {
-		Voxel& voxel = m_graphicPipeline.Get_Voxel();
+		VoxelManager& voxel = m_graphicPipeline.Get_Voxel();
 
 		unsigned int seed = 123456789; // Fixed seed for reproducibility
 
 		//initialize Cellular Automata
 		std::vector<std::pair<int, CellularAutomata>> activeCAs;
-		std::vector<std::pair<int, PerlinWorm>> activePerlins;
+		//std::vector<std::pair<int, PerlinWorm>> activePerlins;
 		bool simulate = false;
 
 		//initialize bsp
 		float voxelSize = 1.f;
-		glm::vec3 worldSize = glm::vec3{ 100,100,100 };
+		glm::vec3 worldSize = glm::vec3{ 128,128,128 };
 		glm::vec3 worldOrigin = glm::vec3{ 0,0,0 };	
 
-		BinarySpacePartition bsp(seed);
 
+
+		BinarySpacePartition bsp(seed);
 		bsp.SetBounds(worldOrigin, worldSize);
 
 		// Note to draw inside while loop
 		Shapes& shape = m_graphicPipeline.Get_Shapes();
 		Camera& camera = m_graphicPipeline.Get_Camera();
+
+
 
 		//Algorithms to run
 		bool binarySpacePartition = true;
@@ -83,87 +88,36 @@ namespace app {
 
 				bsp.clear();
 				activeCAs.clear();
-				activePerlins.clear();
 				voxel.clearVoxel();
 
-				auto start = std::chrono::high_resolution_clock::now(); // Start timer
+				
+				VoxelWorld world(worldOrigin, worldSize.x, worldSize.y, worldSize.z, voxel, voxelSize, SOLID);
+
+
+				std::vector<BinarySpacePartition::Room> rooms;
+
+			    auto start = std::chrono::high_resolution_clock::now(); // Start timer
+
 
 				if (binarySpacePartition) {
 					bsp.Update();
-					auto rooms = bsp.GetRooms();
-					std::vector<bool> randomRooms = RandomClass::GenerateMaxTrue(seed, bsp.params.maxRoomCount, rooms.size());
-
-					int count{};
-					for (auto& room : rooms) {
-						if (bsp.params.randomRooms && !randomRooms[count]) {
-							count++;
-							continue;
-						}
-
-						constexpr int subDim = 16;
-						glm::vec3 extent = room.extent - glm::vec3(bsp.params.buffer);
-						//do this to avoid negative extent
-						extent = glm::max(extent, glm::vec3{ 1.f,1.f,1.f });
-
-						int caKey = voxel.AddChunk(room.center.x, room.center.y, room.center.z, extent.x, extent.y, extent.z, voxelSize);
-						auto chunks = voxel.GetChunk(caKey);
-
-						glm::vec3 roomCenter = room.center + 0.5f * room.extent;
-						glm::vec3 subWorldMin = roomCenter - glm::vec3{ subDim } *voxelSize * 0.5f;
-
-						if (cellularAutomata) {
-							CellularAutomata ca(seed);
-							ca.SetChunk(chunks, subWorldMin, glm::vec3(subDim) * voxelSize);
-							ca.SetSeeds({ room });
-
-							activeCAs.emplace_back(caKey, std::move(ca));
-						}
-
-						if (perlinWorm) {
-
-							if (!cellularAutomata) {
-								chunks->FillChunk(SOLID);
-							}
-
-							PerlinWorm perlinWorm(seed);
-							perlinWorm.SetChunk(chunks, subWorldMin, glm::vec3(subDim) * voxelSize);
-							perlinWorm.SetRooms({ room });
-							perlinWorm.ApplyPerlin();
-
-							activePerlins.emplace_back(caKey, std::move(perlinWorm));
-						}
-
-						count++;
-					}
-
-					
+					rooms = bsp.GetRooms();
 				}
-				else{
-					int subDim = 100;
-					int key = voxel.AddChunk(0, 0, 0, subDim, subDim, subDim, 1.f, SOLID);
-					auto chunk = voxel.GetChunk(key);
-					
-					glm::vec3 roomCenter = glm::vec3{ 0.f,0.f,0.f } + 0.5f * glm::vec3(100);
-					glm::vec3 subWorldMin = roomCenter - glm::vec3(16.f) * voxelSize * 0.5f;
+				else {
+					//single room 
+					rooms.push_back(BinarySpacePartition::Room{ glm::vec3{0.f,0.f,0.f}, bsp.GetSize()});
+				}
 
-					if (cellularAutomata) {
-						CellularAutomata ca(seed);
-						ca.SetChunk(chunk, subWorldMin, glm::vec3(subDim) * voxelSize);
-						ca.SetSeeds({ BinarySpacePartition::Room{ roomCenter , glm::vec3(100) } });
 
-						activeCAs.emplace_back(key, std::move(ca));
-					}
-
+				for (const auto& room : rooms) {
 					if (perlinWorm) {
-						PerlinWorm perlinWorm(seed);
-						perlinWorm.SetChunk(chunk, subWorldMin, glm::vec3(16) * voxelSize);
-						perlinWorm.SetRooms({ BinarySpacePartition::Room{ roomCenter , glm::vec3(100) } });
-						perlinWorm.Update();
 
-						activePerlins.emplace_back(key, std::move(perlinWorm));
+						//GeneratePerlin<VoxelWorld>(world, room.StartPoint, room.extent, seed, SOLID);
+						GeneratePerlin<VoxelWorld>(world, room.StartPoint, room.extent, seed, EMPTY);
+
 					}
-
 				}
+
 
 				auto end = std::chrono::high_resolution_clock::now(); // End timer
 				auto duration = duration_cast<std::chrono::milliseconds>(end - start);
@@ -175,7 +129,7 @@ namespace app {
 				
 
 			bsp.DrawImgui();
-			PerlinWorm::StaticDrawImgui();
+			PerlinDrawImgui();
 
 
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);

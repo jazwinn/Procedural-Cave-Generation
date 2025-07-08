@@ -4,7 +4,7 @@
 void BinarySpacePartition::Update() {
 	m_lines.clear();
     m_rooms.clear();
-    Partition(m_origin, m_size, 0);
+    Partition(glm::ivec3(0), m_size, 0);
 }
 
 void BinarySpacePartition::Draw(Shapes& shapes, const glm::mat4& vp, const glm::vec4& color) {
@@ -20,129 +20,102 @@ void BinarySpacePartition::DrawImgui() {
     if (ImGui::TreeNode("BSP Parameters")) {
         ImGui::SliderInt("Min Room Size", &params.minSize, 1, m_size.x/2);
         ImGui::SliderInt("Max Depth", &params.maxDepth, 1, 10);
-		ImGui::SliderInt("Buffer", &params.buffer, 0, 20);
         ImGui::SliderFloat("Balance", &params.balance, 0.01f, 0.49f);
         ImGui::SliderFloat3("Origin", &m_origin.x, -100, 100);
         ImGui::SliderFloat3("Size", &m_size.x, 0.1, 100);
-		ImGui::Checkbox("Random Rooms", &params.randomRooms);
-		if (params.randomRooms) {
-			ImGui::SliderInt("Max Room", &params.maxRoomCount, 1, 100);
-		}
+		//ImGui::SliderInt("Buffer", &params.buffer, 0, 20);
+		//ImGui::Checkbox("Random Rooms", &params.randomRooms);
+		//if (params.randomRooms) {
+		//	ImGui::SliderInt("Max Room", &params.maxRoomCount, 1, 100);
+		//}
 
 
         ImGui::TreePop();
     }
 }
 
-void BinarySpacePartition::Partition(const glm::vec3& origin, const glm::vec3& size, int depth) {
-
-    srand(m_seed);
-
-    glm::vec3 offSet = size * 0.5f;
-
-    if (depth >= params.maxDepth || glm::min(glm::min(size.x, size.y), size.z) < params.minSize * 2) {
-        m_rooms.push_back({ origin, size });
-        return;
-    }
-
-    int axis = (size.x > size.y && size.x > size.z) ? 0 : (size.y > size.z ? 1 : 2);
+void BinarySpacePartition::Partition(const glm::ivec3& origin, const glm::ivec3& cubeSize, int depth) {
+	srand(m_seed);
 
 
-    float axisLength = size[axis];
-
-    //int minB = int(len * params.balance);
-    //int maxB = int(len - minB);
-    ////if (maxB - minB < params.minSize) {
-    ////    m_rooms.push_back({ origin, size });
-    ////    return;
-    ////}
-
-	float minBound = origin[axis] - offSet[axis];
-	float maxBound = origin[axis] + offSet[axis];
-
-	float validMinBound = minBound + params.balance * axisLength;
-	float validMaxBound = maxBound - params.balance * axisLength;
-
-	float splitRange = validMaxBound - validMinBound;
-	if (splitRange < 1.0f) {
-		// Not enough space to split meaningfully
-		m_rooms.push_back({ origin, size });
+	if (depth >= params.maxDepth || glm::min(glm::min(cubeSize.x, cubeSize.y), cubeSize.z) < static_cast<int>(params.minSize) * 2) {
+		m_rooms.push_back({ origin, cubeSize });
 		return;
 	}
 
-    float split = 0;
+	// Choose axis to split
+	int axis = (cubeSize.x > cubeSize.y && cubeSize.x > cubeSize.z) ? 0 : (cubeSize.y > cubeSize.z ? 1 : 2);
+	int axisLength = cubeSize[axis];
 
+	int minBound = origin[axis];
+	int maxBound = origin[axis] + axisLength;
 
-	int count = 0;
-    while (true) {
-		split = validMinBound + static_cast<float>(rand()) / RAND_MAX * splitRange;
+	int validMin = minBound + static_cast<int>(params.balance * axisLength);
+	int validMax = maxBound - static_cast<int>(params.balance * axisLength);
 
-		float leftSize = split - minBound;
-		float rightSize = maxBound - split;
+	if (validMax <= validMin) {
+		m_rooms.push_back({ origin, cubeSize });
+		return;
+	}
 
-		if (leftSize < params.minSize || rightSize < params.minSize) {
-			count++;
+	int split = validMin + rand() % (validMax - validMin + 1);
 
+	int leftSize = split - minBound;
+	int rightSize = maxBound - split;
 
-			if (count >= 10) {
-				m_rooms.push_back({ origin, size });
-				return;
-			}
+	if (leftSize < params.minSize || rightSize < params.minSize) {
+		m_rooms.push_back({ origin, cubeSize });
+		return;
+	}
 
-
-			continue; // too small on one side
-		}
-
-
-
-        break;
-    }
-    
-
-	glm::vec3 p0 = origin;
-	glm::vec3 p1 = origin;
-	glm::vec3 p2 = origin;
-	glm::vec3 p3 = origin;
+	glm::vec3 p0 = glm::vec3(origin);
+	glm::vec3 p1 = p0, p2 = p0, p3 = p0;
 
 	switch (axis) {
-	case 0: // Split along X
-		p0 = origin + glm::vec3{ split - origin.x, -offSet.y, -offSet.z };
-		p1 = origin + glm::vec3{ split - origin.x,  offSet.y, -offSet.z };
-		p2 = origin + glm::vec3{ split - origin.x, -offSet.y,  offSet.z };
-		p3 = origin + glm::vec3{ split - origin.x,  offSet.y,  offSet.z };
+	case 0:
+		p0.x = split;
+		p1 = p0 + glm::vec3(0, cubeSize.y, 0);
+		p2 = p0 + glm::vec3(0, 0, cubeSize.z);
+		p3 = p0 + glm::vec3(0, cubeSize.y, cubeSize.z);
 		break;
-	case 1: // Split along Y
-		p0 = origin + glm::vec3{ -offSet.x, split - origin.y, -offSet.z };
-		p1 = origin + glm::vec3{ offSet.x, split - origin.y, -offSet.z };
-		p2 = origin + glm::vec3{ -offSet.x, split - origin.y,  offSet.z };
-		p3 = origin + glm::vec3{ offSet.x, split - origin.y,  offSet.z };
+	case 1:
+		p0.y = split;
+		p1 = p0 + glm::vec3(cubeSize.x, 0, 0);
+		p2 = p0 + glm::vec3(0, 0, cubeSize.z);
+		p3 = p0 + glm::vec3(cubeSize.x, 0, cubeSize.z);
 		break;
-	case 2: // Split along Z
-		p0 = origin + glm::vec3{ -offSet.x, -offSet.y, split - origin.z };
-		p1 = origin + glm::vec3{ offSet.x, -offSet.y, split - origin.z };
-		p2 = origin + glm::vec3{ -offSet.x,  offSet.y, split - origin.z };
-		p3 = origin + glm::vec3{ offSet.x,  offSet.y, split - origin.z };
+	case 2:
+		p0.z = split;
+		p1 = p0 + glm::vec3(cubeSize.x, 0, 0);
+		p2 = p0 + glm::vec3(0, cubeSize.y, 0);
+		p3 = p0 + glm::vec3(cubeSize.x, cubeSize.y, 0);
 		break;
 	}
-    m_lines.push_back({ p0, p1 });
-    m_lines.push_back({ p0, p2 });
-    m_lines.push_back({ p3, p1 });
-    m_lines.push_back({ p3, p2 });
 
-	float leftSize = split - minBound;
-	float rightSize = maxBound - split;
+	glm::vec3 gridCenter = m_origin;
 
-	glm::vec3 sizeA = size;
-	glm::vec3 sizeB = size;
+	p0 -= m_size * 0.5f;
+	p1 -= m_size * 0.5f;
+	p2 -= m_size * 0.5f;
+	p3 -= m_size * 0.5f;
+
+
+	m_lines.push_back({ p0, p1 });
+	m_lines.push_back({ p0, p2 });
+	m_lines.push_back({ p3, p1 });
+	m_lines.push_back({ p3, p2 });
+
+	// Recursive subdivision
+	glm::ivec3 sizeA = cubeSize;
+	glm::ivec3 sizeB = cubeSize;
 	sizeA[axis] = leftSize;
 	sizeB[axis] = rightSize;
 
-	glm::vec3 originA = origin;
-	glm::vec3 originB = origin;
-	originA[axis] = minBound + leftSize * 0.5f;
-	originB[axis] = split + rightSize * 0.5f;
+	glm::vec3 originA = glm::vec3(origin);
+	glm::vec3 originB = glm::vec3(origin);
+	originB[axis] += leftSize;
 
-
-	Partition(originA, sizeA, depth + 1);
-	Partition(originB, sizeB, depth + 1);
+	Partition(originA, glm::vec3(sizeA), depth + 1);
+	Partition(originB, glm::vec3(sizeB), depth + 1);
 }
+
