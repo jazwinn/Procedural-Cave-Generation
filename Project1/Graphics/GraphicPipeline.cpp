@@ -110,7 +110,11 @@ namespace graphic {
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 		if (ImGui::CollapsingHeader("Graphics Setting")) {
 			ImGui::Checkbox("Greedy", &m_voxel.config.greedy);
-			ImGui::Checkbox("Smooth", &m_voxel.config.marchingCube);
+			if(ImGui::Checkbox("Smooth", &m_voxel.config.marchingCube)) {
+				if (m_voxel.config.marchingCube == true) {
+					config.backFaceCulling = false;
+				}
+			}
 			ImGui::ColorEdit4("Voxel Color", &m_voxel.color.x);
 			ImGui::Separator();
 			ImGui::Checkbox("Back Face Culling", &config.backFaceCulling);
