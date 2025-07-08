@@ -4,16 +4,16 @@
 #define BINARYSPACEPARTITION_H
 
 #include "Generator.h"
-#include "Shapes.h"
+#include "DrawShapes.h"
 
 
 struct BSPParams {
 	int minSize   = 25;
 	int maxDepth  = 6;
 	float balance = 0.3f;
-	int buffer = 0; // Buffer space around rooms
-	bool randomRooms = false;
-	int maxRoomCount = 10; // Number of random rooms to generate
+	//int buffer = 0; // Buffer space around rooms
+	//bool randomRooms = false;
+	//int maxRoomCount = 10; // Number of random rooms to generate
 };
 
 class BinarySpacePartition : public Generator {
@@ -29,7 +29,7 @@ public:
 	};
 
 	struct Room {
-		glm::vec3 center;
+		glm::vec3 StartPoint;
 		glm::vec3 extent;
 	};
 
@@ -47,6 +47,9 @@ public:
 	}
 	
 	std::vector<Room> GetRooms() { return m_rooms; }
+	std::vector<Line> GetLines() { return m_lines; }
+	glm::vec3 GetOrigin() const { return m_origin; }
+	glm::vec3 GetSize() const { return m_size; }
 
 	virtual void Update() override;
 	virtual void Draw(Shapes&, const glm::mat4&, const glm::vec4&) override;
@@ -57,7 +60,7 @@ public:
 	glm::vec3 m_origin{ 0.0f };
 	glm::vec3 m_size{ 1.0f };
 private:
-	void Partition(const glm::vec3&, const glm::vec3&, int);
+	void Partition(const glm::ivec3&, const glm::ivec3&, int depth);
 	unsigned int& m_seed;
 };
 

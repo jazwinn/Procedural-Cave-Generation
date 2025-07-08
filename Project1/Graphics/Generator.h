@@ -2,8 +2,8 @@
 #ifndef GENERATOR_H
 #define GENERATOR_H
 
-#include "Shapes.h"
-#include "Voxel.h"
+#include "DrawShapes.h"
+#include "VoxelWorld.h"
 
 class Generator {
 public:
