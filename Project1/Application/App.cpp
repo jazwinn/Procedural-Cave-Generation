@@ -15,7 +15,7 @@ namespace app {
 	App::~App() {}
 
 	int App::Run() {
-		Voxel& voxel = m_graphicPipeline.Get_Voxel();
+		VoxelManager& voxel = m_graphicPipeline.Get_Voxel();
 
 		unsigned int seed = 123456789; // Fixed seed for reproducibility
 

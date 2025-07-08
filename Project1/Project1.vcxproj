@@ -168,6 +168,7 @@
     <ClCompile Include="Graphics\Mesh.cpp" />
     <ClCompile Include="Graphics\DrawShapes.cpp" />
     <ClCompile Include="Algorithms\RandomAlgo.cpp" />
+    <ClCompile Include="VoxelWorld.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Algorithms\BinarySpacePartition.h" />
@@ -188,6 +189,7 @@
     <ClInclude Include="Graphics\Mesh.h" />
     <ClInclude Include="Graphics\DrawShapes.h" />
     <ClInclude Include="Algorithms\RandomAlgo.h" />
+    <ClInclude Include="VoxelWorld.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Graphics\Shaders\genericFragmentShader.frag" />

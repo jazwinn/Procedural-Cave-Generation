@@ -33,7 +33,7 @@ namespace graphic {
 
 
 		Camera& Get_Camera() { return m_camera; }
-		Voxel& Get_Voxel() { return m_voxel;}
+		VoxelManager& Get_Voxel() { return m_voxel;}
 		Shapes& Get_Shapes() { return m_Shapes; }
 
 
@@ -42,7 +42,7 @@ namespace graphic {
 	private:
 
 		
-		Voxel m_voxel;
+		VoxelManager m_voxel;
 		Shader m_genericShader;
 		Shader m_InstancedShader;
 		window::Window& m_window;
