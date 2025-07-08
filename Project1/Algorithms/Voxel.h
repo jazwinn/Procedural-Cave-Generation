@@ -66,7 +66,6 @@ public:
 	MarchingCube GenerateVertices();
 
 	void Update(RenderType = DEFAULT);
-	void Draw(const glm::mat4& vp, const glm::vec4& color, RenderType = DEFAULT);
 	
 
 	BlockType& at(int x, int y, int z) {

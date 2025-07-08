@@ -774,10 +774,6 @@ void Chunks::Update(RenderType type)
 
 
 
-void Chunks::Draw(const glm::mat4& vp, const glm::vec4& color, RenderType type)
-{
-
-}
 
 MarchingCube Chunks::GenerateVertices()
 {

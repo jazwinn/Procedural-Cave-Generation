@@ -3,7 +3,7 @@
 #define GENERATOR_H
 
 #include "DrawShapes.h"
-#include "Voxel.h"
+#include "VoxelWorld.h"
 
 class Generator {
 public:
