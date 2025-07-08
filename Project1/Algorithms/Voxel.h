@@ -9,6 +9,13 @@
 
 class VoxelManager;
 
+extern const int triTable[256][16];
+extern const int edgeTable[256];
+extern const int cornerIndexAFromEdge[12];
+extern const int cornerIndexBFromEdge[12];
+extern const glm::vec3 cornerOffsets[8];
+
+
 enum BlockType {
 	EMPTY = 0,
 	SOLID = 1
@@ -38,6 +45,8 @@ struct Quad {
 struct MarchingCube {
 	std::vector<glm::vec3> vertices;
 	std::vector<GLuint> indices;
+	glm::vec3 position; // Position of the chunk in the world
+	float scale = 1.f; // Scale factor for the chunk
 };
 
 class Chunks {
@@ -68,14 +77,6 @@ public:
 	void Update(RenderType = DEFAULT);
 	
 
-	BlockType& at(int x, int y, int z) {
-		return m_Blocks[x + y * m_Width + z * m_Width * m_Height];
-	}
-
-	void SetWorld(VoxelManager* voxel) {
-		m_Voxel = voxel;
-	}
-
 	bool isSolid(int x, int y, int z) {
 		if (x < 0 || x >= m_Width || y < 0 || y >= m_Height || z < 0 || z >= m_Depth) {
 			return false; // Consider out-of-bounds as empty
@@ -83,11 +84,13 @@ public:
 		return at(x, y, z) != EMPTY;
 	}
 
+	BlockType& at(int x, int y, int z) {
+		return m_Blocks[x + y * m_Width + z * m_Width * m_Height];
+	}
 	int GetWidth() const { return m_Width; }
 	int GetHeight() const { return m_Height; }
 	int GetDepth() const { return m_Depth; }
 	float GetScale() const { return m_ScaleFactor; }
-	std::optional<std::reference_wrapper<BlockType>>  GetWorldBlock(int x, int y, int z);
 	const std::vector<glm::mat4x4>& GetTransformation() const { return m_transforms; }
 
 	//get bottom left
@@ -121,9 +124,6 @@ private:
 	std::vector<BlockType> m_Blocks; // 3D vector to hold block types
 
 	std::vector<glm::mat4x4> m_transforms; // Transforms for each block in the chunk
-
-	VoxelManager* m_Voxel = nullptr;
-
 
 };
 
@@ -165,6 +165,10 @@ public:
 		return nullptr;
 	}
 
+	void InsertMarchingCubeMesh(const MarchingCube& marchingCube) {
+		m_ChunkMarchingMesh.push_back(marchingCube);
+	}
+
 public:
 	VoxelConfig config;
 	glm::vec4 color{ 0.7,0.7,0.7,0.2 };
@@ -173,7 +177,7 @@ private:
 	std::unordered_map<int, std::shared_ptr<Chunks>> m_Chunks; // Map to hold chunks by their position
 	std::vector<glm::mat4x4> m_transforms;
 
-	std::unordered_map<int, MarchingCube> m_ChunkMarchingMesh; // Map to hold transforms for each chunk
+	std::vector<MarchingCube> m_ChunkMarchingMesh; // Map to hold transforms for each chunk
 
 	std::unique_ptr<Mesh> m_InstancedQuad;
 
