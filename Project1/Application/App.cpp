@@ -125,10 +125,16 @@ namespace app {
 					}
 				}
 
+
+
 				auto end = std::chrono::high_resolution_clock::now(); // End timer
 				auto duration = duration_cast<std::chrono::milliseconds>(end - start);
 				lastAlgorithmRunTime = static_cast<float>(duration.count()) / 1000.0f; // Convert to seconds
 
+				if (voxel.config.marchingCube) {
+					voxel.InsertMarchingCubeMesh(world.GenerateVertices());
+				}
+				
 				voxel.UpdateAllChunk();
 			}
 
