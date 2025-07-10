@@ -143,7 +143,7 @@ namespace app {
 
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 			if (ImGui::TreeNode("Cellular Automata")) {
-				ImGui::Checkbox("Enable CA", &simulateCA);
+				ImGui::Checkbox("Simulate", &simulateCA);
 				CellularAutomataDrawImgui();
 				ImGui::TreePop();
 			}
