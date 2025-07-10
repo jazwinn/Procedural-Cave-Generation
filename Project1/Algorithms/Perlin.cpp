@@ -86,10 +86,9 @@ float Perlin(float x, float y, float z)
 	bbb = p[p[p[Inc(xi)] + Inc(yi)] + Inc(zi)];
 
 	double x1, x2, y1, y2;
-	x1 = Lerp(Gradient(aaa, xf, yf, zf), Gradient(baa, xf - 1, yf, zf),
-		u);                                    
-	x2 = Lerp(Gradient(aba, xf, yf - 1, zf), Gradient(bba, xf - 1, yf - 1, zf),
-		u);
+	x1 = Lerp(Gradient(aaa, xf, yf, zf), Gradient(baa, xf - 1, yf, zf),u);     
+
+	x2 = Lerp(Gradient(aba, xf, yf - 1, zf), Gradient(bba, xf - 1, yf - 1, zf),u);
 	y1 = Lerp(x1, x2, v);
 
 	x1 = Lerp(Gradient(aab, xf, yf, zf - 1) ,Gradient(bab, xf - 1, yf, zf - 1),u);
