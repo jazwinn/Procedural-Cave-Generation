@@ -59,10 +59,14 @@ float Gradient(int hash, float x, float y, float z) {
 
 float Perlin(float x, float y, float z)
 {
-	int p[512];
-	for (int i = 0; i < 512; i++) {
-		p[i] = permutation[i % 256];
-	}
+	 static int p[512];
+    static bool initialized = false;
+    if (!initialized) {
+        for (int i = 0; i < 512; i++) {
+            p[i] = permutation[i % 256];
+        }
+        initialized = true;
+    }
 
 	int xi = (int)x & 255;                         
 	int yi = (int)y & 255;                             
