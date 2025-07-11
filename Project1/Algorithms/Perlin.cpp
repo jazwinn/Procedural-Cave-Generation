@@ -128,12 +128,13 @@ void PerlinDrawImgui()
 {
 	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 	if (ImGui::TreeNode("Perlin Worm Parameters")) {
-		ImGui::SliderFloat("Scale", &m_params.scale, 1.f, 9.f);
-		ImGui::SliderFloat("Threshold", &m_params.threshold, 0.0f, 1.0f);
-		ImGui::SliderInt("Worm Count", &m_params.wormCount, 0, 20);
-		ImGui::SliderInt("Worm Radius", &m_params.wormRadius, 1, 5);
-		ImGui::SliderInt("Octave Count", &m_params.octave, 1, 10);
-		ImGui::SliderFloat("Peristence", &m_params.octavePersistence, 0.1, 1.f);
+		ImGui::SliderFloat("Scale", &perlinParams.scale, 1.f, 9.f);
+		ImGui::SliderFloat("Threshold", &perlinParams.threshold, 0.0f, 1.0f);
+		//ImGui::SliderInt("Worm Count", &m_params.wormCount, 0, 20);
+		//ImGui::SliderInt("Worm Radius", &m_params.wormRadius, 1, 5);
+		ImGui::SliderInt("Octave Count", &perlinParams.octave, 1, 10);
+		ImGui::SliderFloat("Peristence", &perlinParams.octavePersistence, 0.1, 1.f);
+		ImGui::Checkbox("Generate Solid", &perlinParams.generateSolid);
 		ImGui::TreePop();
 	}
 }

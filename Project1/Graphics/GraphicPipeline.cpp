@@ -48,28 +48,26 @@ namespace graphic {
 		glfwGetCursorPos(m_window.window, &cursor_x, &cursor_y);
 
 		if (glfwGetMouseButton(m_window.window, GLFW_MOUSE_BUTTON_2) != 0) {
-			auto side = glm::normalize(glm::cross(m_camera.direction, { 0, 1, 0 }));
-			auto up = glm::normalize(glm::cross(m_camera.direction, side));
+			glm::vec3 side = glm::normalize(glm::cross(m_camera.direction, { 0, 1, 0 }));
+			glm::vec3 up = glm::normalize(glm::cross(m_camera.direction, side));
+			glm::vec3 forward = glm::normalize(m_camera.direction);
 
-			float speed = 40.0f;
-			if (glfwGetKey(m_window.window, GLFW_KEY_W) != 0) {
-				m_camera.SetPosition(m_camera.GetPosition() + glm::normalize(m_camera.direction) * dt * speed);
+
+			glm::vec3 movement(0.0f);
+
+			float speed = 80.0f;
+			if (glfwGetKey(m_window.window, GLFW_KEY_W) == GLFW_PRESS) movement += forward;
+			if (glfwGetKey(m_window.window, GLFW_KEY_S) == GLFW_PRESS) movement -= forward;
+			if (glfwGetKey(m_window.window, GLFW_KEY_D) == GLFW_PRESS) movement += side;
+			if (glfwGetKey(m_window.window, GLFW_KEY_A) == GLFW_PRESS) movement -= side;
+			if (glfwGetKey(m_window.window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) movement += up;
+			if (glfwGetKey(m_window.window, GLFW_KEY_SPACE) == GLFW_PRESS) movement -= up;
+
+			if (glm::length(movement) > 0.0f) {
+				m_camera.SetPosition(m_camera.GetPosition() + glm::normalize(movement) * speed * dt);
 			}
-			if (glfwGetKey(m_window.window, GLFW_KEY_S) != 0) {
-				m_camera.SetPosition(m_camera.GetPosition() - glm::normalize(m_camera.direction) * dt * speed);
-			}
-			if (glfwGetKey(m_window.window, GLFW_KEY_A) != 0) {
-				m_camera.SetPosition(m_camera.GetPosition() - glm::normalize(side) * dt * speed);
-			}
-			if (glfwGetKey(m_window.window, GLFW_KEY_D) != 0) {
-				m_camera.SetPosition(m_camera.GetPosition() + glm::normalize(side) * dt * speed);
-			}
-			if (glfwGetKey(m_window.window, GLFW_KEY_SPACE) != 0) {
-				m_camera.SetPosition(m_camera.GetPosition() - glm::normalize(up) * dt * speed);
-			}
-			if (glfwGetKey(m_window.window, GLFW_KEY_LEFT_CONTROL) != 0) {
-				m_camera.SetPosition(m_camera.GetPosition() + glm::normalize(up) * dt * speed);
-			}
+				
+
 			glm::vec2 cursor_delta = { (float)cursor_x - m_camera.prevMouseCursor.x, (float)cursor_y - m_camera.prevMouseCursor.y };
 			float     rotation_speed = 0.01f;
 			m_camera.direction = glm::vec3(glm::vec4(m_camera.direction, 0) * glm::rotate(glm::mat4(1.0f), cursor_delta.y * rotation_speed, side));

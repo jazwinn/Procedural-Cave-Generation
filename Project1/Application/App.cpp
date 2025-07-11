@@ -2,6 +2,7 @@
 #include <cmath>
 #include <iostream>
 #include <chrono>
+#include <thread>
 
 #include "VoxelWorld.h"
 #include "BinarySpacePartition.h"
@@ -42,10 +43,14 @@ namespace app {
 		bool perlinWorm = true;
 		
 		bool simulateCA = false;
-		float caActionInterval = 0;
-		float caUpdateInterval = 3.0f;
+		//float caActionInterval = 0;
+		//float caUpdateInterval = 3.0f;
 
 		std::unique_ptr<CellularAutomata<VoxelWorld>> caPtr;
+		std::unique_ptr<VoxelWorld> voxelWorldPtr;
+
+		std::vector<BinarySpacePartition::Room> rooms;
+		auto start = std::chrono::high_resolution_clock::now(); // Start timer
 
 		float lastTime = static_cast<float>(glfwGetTime());
 		float deltaTime = 0.0f;
@@ -80,85 +85,152 @@ namespace app {
 					seed = rand();
 				}
 			}
-
-			if (ImGui::Button("Generate Cave")) {
-
-				bsp.clear();
-				voxel.clearVoxel();
 				
-				VoxelWorld world(worldOrigin, worldSize.x, worldSize.y, worldSize.z, voxel, voxelSize, SOLID);
+			{
+				static bool initTypeSolid = true;
+				static bool runCaveGeneration = false;
+				if (ImGui::Button("Generate Cave") && !runCaveGeneration) {
 
-				std::vector<BinarySpacePartition::Room> rooms;
 
-			    auto start = std::chrono::high_resolution_clock::now(); // Start timer
 
-				if (binarySpacePartition) {
-					bsp.Update();
-					rooms = bsp.GetRooms();
+					bsp.clear();
+					voxel.clearVoxel();
+					voxelWorldPtr.reset();
+					rooms.clear();
+
+					start = std::chrono::high_resolution_clock::now(); // Start timer
+
+					runCaveGeneration = true;
+
+					BlockType initType = initTypeSolid ? SOLID : EMPTY;
+					voxelWorldPtr = std::make_unique<VoxelWorld>(worldOrigin, worldSize.x, worldSize.y, worldSize.z, voxel, voxelSize, initType);
+
+					if (cellularAutomata) {
+
+						BlockType type = m_caParams.generateSolid ? SOLID : EMPTY;
+
+						if (simulateCA) {
+							caPtr = std::make_unique<CellularAutomata<VoxelWorld>>(*voxelWorldPtr, worldOrigin, worldSize, seed, type);
+							//caActionInterval = 0.f;
+						}
+						else {
+							CellularAutomata<VoxelWorld> inst(*voxelWorldPtr, worldOrigin, worldSize, seed, type);
+							while (inst.GenerateCellularAutomata()) {
+								static int stepCount = 0;
+								stepCount++;
+								if (stepCount > m_caParams.iterationCount) { break; }
+							}
+							caPtr.reset();
+						}
+
+					}
 				}
-				else {
-					//single room 
-					rooms.push_back(BinarySpacePartition::Room{ glm::vec3{0.f,0.f,0.f}, bsp.GetSize()});
-				}
+				ImGui::SameLine();
+				ImGui::Checkbox("Initialize Solid", &initTypeSolid);
 
-				if (cellularAutomata) {
-					if (simulateCA) {
-						caPtr = std::make_unique<CellularAutomata<VoxelWorld>>(world, worldOrigin, worldSize, seed, EMPTY);
-						caActionInterval = 0.f;
+				if (runCaveGeneration) {
+
+
+					//update 
+					bool done = false;
+					if (simulateCA && caPtr) {
+
+						auto startCA = std::chrono::high_resolution_clock::now(); // Start timer
+
+						static bool firstRun = true;
+						static bool runDone = false;
+						if (firstRun && !runDone) {
+							firstRun = false;
+							std::thread([&]() {
+								if (!caPtr->GenerateCellularAutomata()) {
+									caPtr.reset();
+									done = true;
+
+								}
+
+								runDone = true;
+								//std::cout << "Cellular Automata finished." << std::endl;
+								}).detach(); // Run CA update in a separate thread
+						}
+
+
+						//std::cout << "iterate" << std::endl;
+
+
+						auto endCA = std::chrono::high_resolution_clock::now(); // End timer
+						auto durationCA = duration_cast<std::chrono::milliseconds>(endCA - startCA);
+						auto CAframeTime = static_cast<float>(durationCA.count()) / 1000.0f; // Convert to seconds
+
+
+						//caActionInterval += deltaTime;
+
+						// Step CA every 3 seconds (adjust timing as needed)
+						if (runDone || done) {
+							voxel.UpdateAllChunk();
+							//caActionInterval = 0.f;  // Reset timer
+							firstRun = true;
+							runDone = false;
+						}
+
 					}
 					else {
-						CellularAutomata<VoxelWorld> inst(world, worldOrigin, worldSize, seed, EMPTY);
-						while (inst.GenerateCellularAutomata()) {
-							static int stepCount = 0;
-							stepCount++;
-							if (stepCount > 100) { break; }
+						done = true;
+					}
+
+
+					if (done) {
+
+
+
+						if (binarySpacePartition) {
+							bsp.Update();
+							rooms = bsp.GetRooms();
 						}
-						caPtr.reset();
+						else {
+							//single room 
+							rooms.push_back(BinarySpacePartition::Room{ glm::vec3{0.f,0.f,0.f}, bsp.GetSize() });
+						}
+
+
+						// Perlin Worm (run instantly)
+						if (perlinWorm) {
+
+							BlockType type = perlinParams.generateSolid ? SOLID : EMPTY;
+							for (auto& room : rooms) {
+								GeneratePerlin(*voxelWorldPtr, room.StartPoint, room.extent, seed, type);
+							}
+						}
+
+
+
+						auto end = std::chrono::high_resolution_clock::now(); // End timer
+						auto duration = duration_cast<std::chrono::milliseconds>(end - start);
+						lastAlgorithmRunTime = static_cast<float>(duration.count()) / 1000.0f; // Convert to seconds
+
+						if (voxel.config.marchingCube) {
+							voxel.InsertMarchingCubeMesh(voxelWorldPtr->GenerateVertices());
+						}
+
+						runCaveGeneration = false;
+
+						voxel.UpdateAllChunk();
 					}
-					voxel.UpdateAllChunk();
+
+
+
+
 				}
-
-				// Perlin Worm (run instantly)
-				if (perlinWorm) {
-					for (auto& room : rooms) {
-						GeneratePerlin(world, room.StartPoint, room.extent, seed, EMPTY);
-					}
-				}
-
-
-
-				auto end = std::chrono::high_resolution_clock::now(); // End timer
-				auto duration = duration_cast<std::chrono::milliseconds>(end - start);
-				lastAlgorithmRunTime = static_cast<float>(duration.count()) / 1000.0f; // Convert to seconds
-
-				if (voxel.config.marchingCube) {
-					voxel.InsertMarchingCubeMesh(world.GenerateVertices());
-				}
-				
-				voxel.UpdateAllChunk();
 			}
+			
 
 			bsp.DrawImgui();
 			PerlinDrawImgui();
 
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 			if (ImGui::TreeNode("Cellular Automata")) {
-				ImGui::Checkbox("Simulate", &simulateCA);
+				ImGui::Checkbox("Simulate Steps", &simulateCA);
 				CellularAutomataDrawImgui();
 				ImGui::TreePop();
-			}
-
-			if (simulateCA && caPtr) {
-				caActionInterval += deltaTime;
-
-				// Step CA every 3 seconds (adjust timing as needed)
-				if (caActionInterval > caUpdateInterval) {
-					if (!caPtr->GenerateCellularAutomata()) {
-						caPtr.reset();
-					}
-					voxel.UpdateAllChunk();
-					caActionInterval = 0.f;  // Reset timer
-				}
 			}
 
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
@@ -227,7 +299,6 @@ namespace app {
 			}
 
 			ImGui::End();
-
 			// DRAW
 			bsp.Draw(shape, camera.GetViewProjectionMatrix(), glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
 			m_graphicPipeline.Draw();
