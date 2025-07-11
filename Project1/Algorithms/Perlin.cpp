@@ -59,10 +59,14 @@ float Gradient(int hash, float x, float y, float z) {
 
 float Perlin(float x, float y, float z)
 {
-	int p[512];
-	for (int i = 0; i < 512; i++) {
-		p[i] = permutation[i % 256];
-	}
+	 static int p[512];
+    static bool initialized = false;
+    if (!initialized) {
+        for (int i = 0; i < 512; i++) {
+            p[i] = permutation[i % 256];
+        }
+        initialized = true;
+    }
 
 	int xi = (int)x & 255;                         
 	int yi = (int)y & 255;                             
@@ -86,10 +90,9 @@ float Perlin(float x, float y, float z)
 	bbb = p[p[p[Inc(xi)] + Inc(yi)] + Inc(zi)];
 
 	double x1, x2, y1, y2;
-	x1 = Lerp(Gradient(aaa, xf, yf, zf), Gradient(baa, xf - 1, yf, zf),
-		u);                                    
-	x2 = Lerp(Gradient(aba, xf, yf - 1, zf), Gradient(bba, xf - 1, yf - 1, zf),
-		u);
+	x1 = Lerp(Gradient(aaa, xf, yf, zf), Gradient(baa, xf - 1, yf, zf),u);     
+
+	x2 = Lerp(Gradient(aba, xf, yf - 1, zf), Gradient(bba, xf - 1, yf - 1, zf),u);
 	y1 = Lerp(x1, x2, v);
 
 	x1 = Lerp(Gradient(aab, xf, yf, zf - 1) ,Gradient(bab, xf - 1, yf, zf - 1),u);
@@ -125,12 +128,13 @@ void PerlinDrawImgui()
 {
 	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 	if (ImGui::TreeNode("Perlin Worm Parameters")) {
-		ImGui::SliderFloat("Scale", &m_params.scale, 1.f, 9.f);
-		ImGui::SliderFloat("Threshold", &m_params.threshold, 0.0f, 1.0f);
-		ImGui::SliderInt("Worm Count", &m_params.wormCount, 0, 20);
-		ImGui::SliderInt("Worm Radius", &m_params.wormRadius, 1, 5);
-		ImGui::SliderInt("Octave Count", &m_params.octave, 1, 10);
-		ImGui::SliderFloat("Peristence", &m_params.octavePersistence, 0.1, 1.f);
+		ImGui::SliderFloat("Scale", &perlinParams.scale, 1.f, 9.f);
+		ImGui::SliderFloat("Threshold", &perlinParams.threshold, 0.0f, 1.0f);
+		//ImGui::SliderInt("Worm Count", &m_params.wormCount, 0, 20);
+		//ImGui::SliderInt("Worm Radius", &m_params.wormRadius, 1, 5);
+		ImGui::SliderInt("Octave Count", &perlinParams.octave, 1, 10);
+		ImGui::SliderFloat("Peristence", &perlinParams.octavePersistence, 0.1, 1.f);
+		ImGui::Checkbox("Generate Solid", &perlinParams.generateSolid);
 		ImGui::TreePop();
 	}
 }

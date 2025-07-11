@@ -23,9 +23,10 @@ struct WormParams {
     int wormRadius  = 2;
     int octave = 1;
     float octavePersistence = 1.f;
+	bool generateSolid = false; // Generate solid blocks or empty space
 };
 
-inline WormParams m_params;
+inline WormParams perlinParams;
 
 //Perform Ken Perlin Algorithm
 float Perlin(float x, float y, float z);
@@ -40,6 +41,8 @@ void GeneratePerlin(voxelType& voxelWorld, const glm::ivec3& start, const glm::i
 	float seedY = RandomClass::randomFloat(0.f, 100.f);
 	float seedZ = RandomClass::randomFloat(0.f, 100.f);
 
+	glm::vec3 denominator = glm::vec3(perlinParams.scale) / glm::vec3(size);
+
 	for (int z = 0; z < size.z; ++z) {
 		for (int y = 0; y < size.y; ++y) {
 			for (int x = 0; x < size.x; ++x) {
@@ -48,11 +51,11 @@ void GeneratePerlin(voxelType& voxelWorld, const glm::ivec3& start, const glm::i
 				int coordY = start.y + y;
 				int coordZ = start.z + z;
 
-				float nx = static_cast<float>(x) / size.x * m_params.scale + seedZ;
-				float ny = static_cast<float>(y) / size.y * m_params.scale + seedY;
-				float nz = static_cast<float>(z) / size.z * m_params.scale + seedX;
-				float d = PerlinOctave(nx, ny, nz, m_params.octave, m_params.octavePersistence) * 0.5f + 0.5f;
-				if (d < m_params.threshold) {
+				float nx = static_cast<float>(x) * denominator.x + seedX;
+				float ny = static_cast<float>(y) * denominator.y + seedY;
+				float nz = static_cast<float>(z) * denominator.z + seedZ;
+				float d = PerlinOctave(nx, ny, nz, perlinParams.octave, perlinParams.octavePersistence) * 0.5f + 0.5f;
+				if (d < perlinParams.threshold) {
 					voxelWorld.at(coordX, coordY, coordZ) = type;
 				}
 

@@ -3,6 +3,7 @@
 #include <GL/glew.h>
 #include <iostream>
 #include <array>
+#include <thread>
 
 const int triTable[256][16] =
 { {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -411,8 +412,34 @@ void VoxelManager::UpdateChunk(int key)
 
 void VoxelManager::UpdateAllChunk()
 {
-	for (const auto& chunk : m_Chunks) {
-		UpdateChunk(chunk.first);
+	//for (const auto& chunk : m_Chunks) {
+	//	UpdateChunk(chunk.first);
+	//}
+	//std::cout << "Threads available: " << std::thread::hardware_concurrency() << "\n";
+	const size_t numThreads = std::ceil(std::thread::hardware_concurrency()/4);
+	std::vector<std::thread> threads;
+	std::vector<std::vector<decltype(m_Chunks.begin())>> partitions(numThreads);
+
+	int count = 0;
+	for (auto it = m_Chunks.begin(); it != m_Chunks.end(); it++) {
+		partitions[count % numThreads].push_back(it);
+		count++;
+	}
+
+
+	for (int i = 0; i < numThreads; ++i) {
+		auto& chunkPartition = partitions[i];  // This thread's assigned chunks
+
+		threads.emplace_back([this, chunkPartition = std::move(chunkPartition)]() {
+			for (auto& it : chunkPartition) {
+				UpdateChunk(it->first);
+			}
+			});
+	}
+
+
+	for (auto& thread : threads) {
+		thread.join();
 	}
 }
 
