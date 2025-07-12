@@ -90,13 +90,11 @@ namespace app {
 				static bool initTypeSolid = true;
 				static bool runCaveGeneration = false;
 				if (ImGui::Button("Generate Cave") && !runCaveGeneration) {
-
-
-
 					bsp.clear();
 					voxel.clearVoxel();
 					voxelWorldPtr.reset();
 					rooms.clear();
+					caPtr.reset();
 
 					start = std::chrono::high_resolution_clock::now(); // Start timer
 
@@ -107,7 +105,7 @@ namespace app {
 
 					if (cellularAutomata) {
 
-						BlockType type = m_caParams.generateSolid ? SOLID : EMPTY;
+						BlockType type = m_caParams.inverted ? SOLID : EMPTY;
 
 						if (simulateCA) {
 							caPtr = std::make_unique<CellularAutomata<VoxelWorld>>(*voxelWorldPtr, worldOrigin, worldSize, seed, type);
