@@ -113,10 +113,14 @@ namespace app {
 						}
 						else {
 							CellularAutomata<VoxelWorld> inst(*voxelWorldPtr, worldOrigin, worldSize, seed, type);
+							int stepCount = 0;
 							while (inst.GenerateCellularAutomata()) {
-								static int stepCount = 0;
+								
 								stepCount++;
-								if (stepCount > m_caParams.iterationCount) { break; }
+								if (stepCount > m_caParams.iterationCount) { 
+									
+									break; 
+								}
 							}
 							caPtr.reset();
 						}
@@ -143,7 +147,8 @@ namespace app {
 								if (!caPtr->GenerateCellularAutomata()) {
 									caPtr.reset();
 									done = true;
-
+									firstRun = true; // Reset for next run
+									runDone = false;
 								}
 
 								runDone = true;
