@@ -23,12 +23,12 @@ struct WormParams {
     int wormRadius  = 2;
     int octave = 1;
     float octavePersistence = 1.f;
-	bool generateSolid = false; // Generate solid blocks or empty space
+	bool generateSolid = false;		// Generate solid blocks or empty space
 };
 
 inline WormParams perlinParams;
 
-//Perform Ken Perlin Algorithm
+// Perform Ken Perlin Algorithm
 float Perlin(float x, float y, float z);
 
 float PerlinOctave(float x, float y, float z, float octave, float persistence);
@@ -37,9 +37,9 @@ template <typename voxelType>
 void GeneratePerlin(voxelType& voxelWorld, const glm::ivec3& start, const glm::ivec3& size, unsigned int seed = 1234567, BlockType type = EMPTY) {
 	srand(seed);
 
-	float seedX = RandomClass::randomFloat(0.f, 100.f);
-	float seedY = RandomClass::randomFloat(0.f, 100.f);
-	float seedZ = RandomClass::randomFloat(0.f, 100.f);
+	float seedX = rdm::RandomFloat(0.f, 100.f);
+	float seedY = rdm::RandomFloat(0.f, 100.f);
+	float seedZ = rdm::RandomFloat(0.f, 100.f);
 
 	glm::vec3 denominator = glm::vec3(perlinParams.scale) / glm::vec3(size);
 
@@ -65,47 +65,5 @@ void GeneratePerlin(voxelType& voxelWorld, const glm::ivec3& start, const glm::i
 }
 
 void PerlinDrawImgui();
-
-//class PerlinNoise : public Generator {
-//public:
-//    void Update() override;
-//    void Draw(Shapes&, const glm::mat4&, const glm::vec4&) override {}
-//    void DrawImgui() override;
-//
-//    // Note to self: I should really override this and name it initialize or something 
-//    // cause that's what I'm literally doing #futureyhproblem
-//    void SetChunk(std::shared_ptr<Chunks> chunk, const glm::vec3& worldMin, const glm::vec3& worldSize);
-//    NoiseParams& GetParams() { return m_params; }
-//private:
-//    std::shared_ptr<Chunks> m_chunk;
-//    glm::vec3 m_worldMin, m_worldSize;
-//    int m_width, m_height, m_depth;
-//    NoiseParams m_params;
-//};
-//
-//class PerlinWorm : public Generator {
-//public:
-//	PerlinWorm(unsigned int& seed) : m_seed(seed) {}
-//
-//    void Update() override;
-//    void Draw(Shapes&, const glm::mat4&, const glm::vec4&) override {}
-//    void DrawImgui() override;
-//    static void StaticDrawImgui();
-//    void SetChunk(std::shared_ptr<Chunks> chunk, const glm::vec3& worldMin, const glm::vec3& worldSize);
-//    void SetRooms(const std::vector<BinarySpacePartition::Room>& rooms) { m_rooms = rooms; }
-//    void ApplyPerlin(BlockType type = EMPTY);
-//    //static WormParams& GetParams() { return m_params; }
-//private:
-//    std::shared_ptr<Chunks> m_chunk;
-//    std::vector<BinarySpacePartition::Room> m_rooms; 
-//    glm::vec3 m_worldMin, m_worldSize;
-//    int m_width, m_height, m_depth;
-//	unsigned int& m_seed;
-//
-//    
-//    void CarveWorms();
-//    void CarveSphere(const glm::ivec3& center, int radius);
-//};
-
 
 #endif 

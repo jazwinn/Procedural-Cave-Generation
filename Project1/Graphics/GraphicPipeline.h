@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 
-#include "window.h"
+#include "Window.h"
 #include "Shader.h"
 #include "Texture.h"
 #include "VAO.h"

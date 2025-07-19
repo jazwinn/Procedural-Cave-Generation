@@ -2,18 +2,13 @@
 
 #include "Voxel.h"
 
-class VoxelWorld
-{
+class VoxelWorld {
 public:
-	
 	VoxelWorld(glm::vec3 origin, int width, int height, int depth, VoxelManager& manager, float m_chunkScale = 1.f, BlockType = EMPTY ,int chunkSize = 16);
-
-	
 
 	MarchingCube GenerateVertices();
 
-
-	bool isSolid(int x, int y, int z) {
+	bool IsSolid(int x, int y, int z) {
 		if (x < 0 || x >= m_Width || y < 0 || y >= m_Height || z < 0 || z >= m_Depth) {
 			return false; // Consider out-of-bounds as empty
 		}
@@ -26,7 +21,6 @@ public:
 	int GetDepth() const { return m_Depth; }
 	float GetScale() const { return m_chunkScale; }
 	glm::vec3 GetPosition() const { return m_position; }
-
 
 private:
 	std::unordered_map<int, std::shared_ptr<Chunks>> m_chunks;

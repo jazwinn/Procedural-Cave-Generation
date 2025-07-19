@@ -44,13 +44,7 @@ inline BlockType CA_ToBlock(int state, bool inverted) {
 template<typename VoxelWorldT>
 class CellularAutomata {
 public:
-	CellularAutomata(VoxelWorldT& world,
-		const glm::ivec3& origin,
-		const glm::ivec3& size,
-		unsigned int seed,
-		BlockType fillType)
-		: m_world(world), m_origin(origin), m_size(size), m_rng(seed), m_step(0)
-	{
+	CellularAutomata(VoxelWorldT& world, const glm::ivec3& origin, const glm::ivec3& size, unsigned int seed, BlockType fillType) : m_world(world), m_origin(origin), m_size(size), m_rng(seed), m_step(0) {
 		int N = size.x * size.y * size.z;
 		m_cur.resize(N);
 		m_nxt.resize(N);

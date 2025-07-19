@@ -155,7 +155,7 @@
     <ClCompile Include="Algorithms\Perlin.cpp" />
     <ClCompile Include="Application\App.cpp" />
     <ClCompile Include="Application\main.cpp" />
-    <ClCompile Include="Application\window.cpp" />
+    <ClCompile Include="Application\Window.cpp" />
     <ClCompile Include="Graphics\Camera.cpp" />
     <ClCompile Include="Graphics\EBO.cpp" />
     <ClCompile Include="Graphics\GraphicPipeline.cpp" />
@@ -175,7 +175,7 @@
     <ClInclude Include="Algorithms\CellularAutomata.h" />
     <ClInclude Include="Algorithms\Perlin.hpp" />
     <ClInclude Include="Application\App.h" />
-    <ClInclude Include="Application\window.h" />
+    <ClInclude Include="Application\Window.h" />
     <ClInclude Include="Graphics\Camera.h" />
     <ClInclude Include="Graphics\EBO.h" />
     <ClInclude Include="Graphics\Generator.h" />

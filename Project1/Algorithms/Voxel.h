@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 #include <unordered_map>
 #include <memory>
@@ -14,7 +15,6 @@ extern const int edgeTable[256];
 extern const int cornerIndexAFromEdge[12];
 extern const int cornerIndexBFromEdge[12];
 extern const glm::vec3 cornerOffsets[8];
-
 
 enum BlockType {
 	EMPTY = 0,
@@ -46,7 +46,7 @@ struct MarchingCube {
 	std::vector<glm::vec3> vertices;
 	std::vector<GLuint> indices;
 	glm::vec3 position; // Position of the chunk in the world
-	float scale = 1.f; // Scale factor for the chunk
+	float scale = 1.f;	// Scale factor for the chunk
 };
 
 class Chunks {
@@ -61,23 +61,17 @@ public:
 		m_X(_x - (chunkWidth * chunkScale) / 2.f + chunkScale * 0.5f),
 		m_Y(_y - (chunkHeight * chunkScale) / 2.f + chunkScale * 0.5f),
 		m_Z(_z - (chunkDepth * chunkScale) / 2.f + chunkScale * 0.5f),
-		m_Width(chunkWidth), m_Height(chunkHeight), m_Depth(chunkDepth), m_ScaleFactor(chunkScale)
-	{
+		m_Width(chunkWidth), m_Height(chunkHeight), m_Depth(chunkDepth), m_ScaleFactor(chunkScale) {
 		m_Blocks.resize(m_Width * m_Height * m_Depth, type); // Initialize all blocks to EMPTY
 	}
-
-
-
-
 
 	std::vector<Quad> GenerateQuads();
 	std::vector<Quad> GenerateQuadsGreedy();
 	MarchingCube GenerateVertices();
 
 	void Update(RenderType = DEFAULT);
-	
 
-	bool isSolid(int x, int y, int z) {
+	bool IsSolid(int x, int y, int z) {
 		if (x < 0 || x >= m_Width || y < 0 || y >= m_Height || z < 0 || z >= m_Depth) {
 			return false; // Consider out-of-bounds as empty
 		}
@@ -93,19 +87,13 @@ public:
 	float GetScale() const { return m_ScaleFactor; }
 	const std::vector<glm::mat4x4>& GetTransformation() const { return m_transforms; }
 
-	//get bottom left
+	// Get bottom left
 	glm::vec3 GetPosition() const { return glm::vec3(m_X, m_Y, m_Z); }
 	void FillChunk(BlockType type);
 
-
-	
-	
-
 private:
-
-
 	// Check if a face should be rendered (adjacent block is empty or out of bounds)
-	bool shouldRenderFace(int x, int y, int z, int face) {
+	bool ShouldRenderFace(int x, int y, int z, int face) {
 		int dx[] = { 1, -1, 0, 0, 0, 0 };  // +X, -X, +Y, -Y, +Z, -Z
 		int dy[] = { 0, 0, 1, -1, 0, 0 };
 		int dz[] = { 0, 0, 0, 0, 1, -1 };
@@ -114,7 +102,7 @@ private:
 		int ny = y + dy[face];
 		int nz = z + dz[face];
 
-		return isSolid(x, y, z) && !isSolid(nx, ny, nz);
+		return IsSolid(x, y, z) && !IsSolid(nx, ny, nz);
 	}
 
 private:
@@ -124,7 +112,6 @@ private:
 	std::vector<BlockType> m_Blocks; // 3D vector to hold block types
 
 	std::vector<glm::mat4x4> m_transforms; // Transforms for each block in the chunk
-
 };
 
 class VoxelManager {
@@ -132,14 +119,12 @@ public:
 	VoxelManager(Shader& instancedShader, Shader& shader);// load graphics
 	~VoxelManager() = default;
 
-
 	void UpdateChunk(int key);
 	void UpdateAllChunk();
 	void DrawVoxel(const glm::mat4& vp, const glm::vec4& color, GLenum mode);
 
-
-	void deleteChunk(int key);
-	void clearVoxel();
+	void DeleteChunk(int key);
+	void ClearVoxel();
 
 	int AddChunk(float x, float y, float z, int width, int height, int depth, float scale = 1.f, BlockType type = EMPTY) {
 		int key = (int)x + ((int)y << 8) + ((int)z << 24);
@@ -171,7 +156,7 @@ public:
 
 public:
 	VoxelConfig config;
-	glm::vec4 color{ 0.7,0.7,0.7,0.2 };
+	glm::vec4 color{ 0.7, 0.7, 0.7, 0.2 };
 
 private:
 	std::unordered_map<int, std::shared_ptr<Chunks>> m_Chunks; // Map to hold chunks by their position
@@ -183,5 +168,5 @@ private:
 
 	bool m_modified;
 	Shader& m_InstancedShader; // Reference to the shader for rendering
-	Shader& m_Shader; // Reference to the shader for batch rendering
+	Shader& m_Shader;		   // Reference to the shader for batch rendering
 };
