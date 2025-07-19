@@ -1,7 +1,6 @@
 #pragma once
 
-
-#include "window.h"
+#include "Window.h"
 #include "GraphicPipeline.h"
 #include "ImguiHandler.h"
 #include "RandomAlgo.h"
@@ -11,7 +10,6 @@ namespace app {
 	public:
 		App();
 		~App();
-
 		int Run();
 	private:
 		window::Window m_window;

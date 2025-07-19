@@ -12,7 +12,7 @@ void BinarySpacePartition::Draw(Shapes& shapes, const glm::mat4& vp, const glm::
         shapes.Draw_Line(vp, ln.start, ln.end, color);
     }
 
-    shapes.Draw_Rectangle(vp, m_origin, m_size, glm::vec4{ 1.f,1.f,1.f,1.f }, WIREFRAME);
+    shapes.Draw_Rectangle(vp, m_origin, m_size, glm::vec4{ 1.f, 1.f, 1.f, 1.f }, WIREFRAME);
 }
 
 void BinarySpacePartition::DrawImgui() {
@@ -23,20 +23,12 @@ void BinarySpacePartition::DrawImgui() {
         ImGui::SliderFloat("Balance", &params.balance, 0.01f, 0.49f);
         ImGui::SliderFloat3("Origin", &m_origin.x, -100, 100);
         ImGui::SliderFloat3("Size", &m_size.x, 0.1, 100);
-		//ImGui::SliderInt("Buffer", &params.buffer, 0, 20);
-		//ImGui::Checkbox("Random Rooms", &params.randomRooms);
-		//if (params.randomRooms) {
-		//	ImGui::SliderInt("Max Room", &params.maxRoomCount, 1, 100);
-		//}
-
-
         ImGui::TreePop();
     }
 }
 
 void BinarySpacePartition::Partition(const glm::ivec3& origin, const glm::ivec3& cubeSize, int depth) {
 	srand(m_seed);
-
 
 	if (depth >= params.maxDepth || glm::min(glm::min(cubeSize.x, cubeSize.y), cubeSize.z) < static_cast<int>(params.minSize) * 2) {
 		m_rooms.push_back({ origin, cubeSize });
@@ -99,7 +91,6 @@ void BinarySpacePartition::Partition(const glm::ivec3& origin, const glm::ivec3&
 	p2 -= m_size * 0.5f;
 	p3 -= m_size * 0.5f;
 
-
 	m_lines.push_back({ p0, p1 });
 	m_lines.push_back({ p0, p2 });
 	m_lines.push_back({ p3, p1 });
@@ -118,4 +109,3 @@ void BinarySpacePartition::Partition(const glm::ivec3& origin, const glm::ivec3&
 	Partition(originA, glm::vec3(sizeA), depth + 1);
 	Partition(originB, glm::vec3(sizeB), depth + 1);
 }
-

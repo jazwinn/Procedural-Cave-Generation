@@ -6,22 +6,16 @@
 #include "Generator.h"
 #include "DrawShapes.h"
 
-
 struct BSPParams {
 	int minSize   = 25;
 	int maxDepth  = 6;
 	float balance = 0.3f;
-	//int buffer = 0; // Buffer space around rooms
-	//bool randomRooms = false;
-	//int maxRoomCount = 10; // Number of random rooms to generate
+
 };
 
 class BinarySpacePartition : public Generator {
 public:
-	BinarySpacePartition(unsigned int& seed) :m_seed(seed) {
-		
-	}
-
+	BinarySpacePartition(unsigned int& seed) :m_seed(seed) {}
 
 	struct Line {
 		glm::vec3 start;
@@ -41,7 +35,7 @@ public:
 		m_size = size;
 	}
 
-	void clear() {
+	void Clear() {
 		m_lines.clear();
 		m_rooms.clear();
 	}
@@ -59,6 +53,7 @@ public:
 	BSPParams params;
 	glm::vec3 m_origin{ 0.0f };
 	glm::vec3 m_size{ 1.0f };
+
 private:
 	void Partition(const glm::ivec3&, const glm::ivec3&, int depth);
 	unsigned int& m_seed;

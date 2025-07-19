@@ -24,7 +24,7 @@ namespace graphic {
 		m_window{ _window },
 		m_Shapes{m_genericShader, m_InstancedShader},
 		m_voxel{ m_InstancedShader , m_genericShader},
-		m_camera(m_window.getWindowWidth(), m_window.getWindowHeigth())
+		m_camera(m_window.GetWindowWidth(), m_window.GetWindowHeigth())
 	{
 		//Callbacks
 		glfwSetWindowUserPointer(m_window.window, this);

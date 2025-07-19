@@ -300,7 +300,7 @@ const int edgeTable[256] = {
 	0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0 };
 
 const int cornerIndexAFromEdge[12] = {
-0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3
+	0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3
 };
 
 const int cornerIndexBFromEdge[12] = {
@@ -308,8 +308,8 @@ const int cornerIndexBFromEdge[12] = {
 };
 
 const glm::vec3 cornerOffsets[8] = {
-glm::vec3(0, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 0, 1), glm::vec3(0, 0, 1),
-glm::vec3(0, 1, 0), glm::vec3(1, 1, 0), glm::vec3(1, 1, 1), glm::vec3(0, 1, 1)
+	glm::vec3(0, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 0, 1), glm::vec3(0, 0, 1),
+	glm::vec3(0, 1, 0), glm::vec3(1, 1, 0), glm::vec3(1, 1, 1), glm::vec3(0, 1, 1)
 };
 
 std::vector<Quad> Chunks::GenerateQuads() {
@@ -317,20 +317,20 @@ std::vector<Quad> Chunks::GenerateQuads() {
 
     // Process each face direction
     for (int face = 0; face < 6; face++) {
-       // printf("Processing face %d\n", face);
-
-        // For each face, we need to iterate through all blocks and check if that face should be rendered
+        
+		// For each face, we need to iterate through all blocks and check if that face should be rendered
         for (int x = 0; x < m_Width; x++) {
             for (int y = 0; y < m_Height; y++) {
                 for (int z = 0; z < m_Depth; z++) {
-                    if (shouldRenderFace(x, y, z, face)) {
-                        // Calculate the actual position of this face in world space
+                    if (ShouldRenderFace(x, y, z, face)) {
+                        
+						// Calculate the actual position of this face in world space
                         Quad quad;
-                        // Base position is the block position
+                        
+						// Base position is the block position
                         int face_x = x;
                         int face_y = y;
                         int face_z = z;
-
 
                         // Apply world offset
                         quad.x = face_x;
@@ -342,9 +342,6 @@ std::vector<Quad> Chunks::GenerateQuads() {
                         quad.face = (Face)face;
                         quad.type = at(x, y, z);
 
-                        //printf("Block (%d,%d,%d) Face %d -> Position (%d,%d,%d)\n",
-                       //     x, y, z, face, quad.x, quad.y, quad.z);
-
                         quads.push_back(quad);
                     }
                 }
@@ -352,41 +349,33 @@ std::vector<Quad> Chunks::GenerateQuads() {
         }
     }
 
-    //printf("Total quads generated: %zu\n", quads.size());
     return quads;
 }
 
-VoxelManager::VoxelManager(Shader& instancedShader, Shader& shader) :
-	m_modified{ false },
-	m_InstancedShader{ instancedShader },
-	m_Shader{ shader }
-{
-
+VoxelManager::VoxelManager(Shader& instancedShader, Shader& shader) : m_modified{ false }, m_InstancedShader{ instancedShader }, m_Shader{ shader } {
     std::vector<GLfloat> verticesQuad = {
-        // positions (x, y, z)
-        -0.5f, -0.5f, 0.0f,  // bottom-left
-         0.5f, -0.5f, 0.0f,  // bottom-right
-         0.5f,  0.5f, 0.0f,  // top-right
-        -0.5f,  0.5f, 0.0f   // top-left
+        // Positions (x, y, z)
+        -0.5f, -0.5f, 0.0f,  // Bottom-left
+         0.5f, -0.5f, 0.0f,  // Bottom-right
+         0.5f,  0.5f, 0.0f,  // Top-right
+        -0.5f,  0.5f, 0.0f   // Top-left
     };
 
     // Indices for the two triangles that make up the quad
-    std::vector<GLuint> indicesQuad = {
-    0, 1, 2, // first triangle
-    2, 3, 0  // second triangle
-    };
+	std::vector<GLuint> indicesQuad = {
+		0, 1, 2, // First triangle
+		2, 3, 0  // Second triangle
+	};
 
 	// Initialize with identity matrix, for mesh initialization
 	m_transforms.push_back(glm::mat4(1.0f)); 
-
 
     m_InstancedQuad = std::make_unique<Mesh>(verticesQuad, indicesQuad, m_transforms.size(), m_transforms, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
 	m_transforms.clear();
 	m_InstancedQuad->GetInstanceVBO().UpdateData(m_transforms.data(), 0, 0);
 }
 
-void VoxelManager::UpdateChunk(int key)
-{
+void VoxelManager::UpdateChunk(int key) {
 	auto it = m_Chunks.find(key);
 	if (it != m_Chunks.end()) {
 
@@ -410,12 +399,7 @@ void VoxelManager::UpdateChunk(int key)
 
 }
 
-void VoxelManager::UpdateAllChunk()
-{
-	//for (const auto& chunk : m_Chunks) {
-	//	UpdateChunk(chunk.first);
-	//}
-	//std::cout << "Threads available: " << std::thread::hardware_concurrency() << "\n";
+void VoxelManager::UpdateAllChunk() {
 	const size_t numThreads = std::ceil(std::thread::hardware_concurrency()/4);
 	std::vector<std::thread> threads;
 	std::vector<std::vector<decltype(m_Chunks.begin())>> partitions(numThreads);
@@ -426,7 +410,6 @@ void VoxelManager::UpdateAllChunk()
 		count++;
 	}
 
-
 	for (int i = 0; i < numThreads; ++i) {
 		auto& chunkPartition = partitions[i];  // This thread's assigned chunks
 
@@ -434,17 +417,15 @@ void VoxelManager::UpdateAllChunk()
 			for (auto& it : chunkPartition) {
 				UpdateChunk(it->first);
 			}
-			});
+		});
 	}
-
 
 	for (auto& thread : threads) {
 		thread.join();
 	}
 }
 
-void VoxelManager::DrawVoxel(const glm::mat4& vp, const glm::vec4& color, GLenum mode)
-{
+void VoxelManager::DrawVoxel(const glm::mat4& vp, const glm::vec4& color, GLenum mode) {
 	if (config.marchingCube && !m_ChunkMarchingMesh.empty()) {
 
 		for (const auto& marchingCubes : m_ChunkMarchingMesh) {
@@ -460,9 +441,7 @@ void VoxelManager::DrawVoxel(const glm::mat4& vp, const glm::vec4& color, GLenum
 			vbo.Bind();
 			ebo.Bind();
 
-
 			vao.LinkAttribute(vbo, 0, 3, GL_FLOAT, stride, (void*)0);
-
 
 			glm::mat4x4 model = vp * glm::translate(glm::mat4(1.0f), marchingCubes.position) * glm::scale(glm::mat4(1.0f), glm::vec3(marchingCubes.scale));
 
@@ -473,8 +452,8 @@ void VoxelManager::DrawVoxel(const glm::mat4& vp, const glm::vec4& color, GLenum
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			glDrawElements(GL_TRIANGLES, marchingCubes.indices.size(), GL_UNSIGNED_INT, 0);
 
-			//draw wireframe
-			m_Shader.setUniform("uniform_color", glm::vec4{ 0.f,0.f,0.f,1.f });
+			// Draw wireframe
+			m_Shader.setUniform("uniform_color", glm::vec4{ 0.f, 0.f, 0.f, 1.f });
 			glEnable(GL_POLYGON_OFFSET_LINE);
 			glPolygonOffset(-1.0f, -1.0f);
 
@@ -485,25 +464,20 @@ void VoxelManager::DrawVoxel(const glm::mat4& vp, const glm::vec4& color, GLenum
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			glDisable(GL_POLYGON_OFFSET_LINE);
 
-
-
 			vao.Delete();
 			vbo.Delete();
 			ebo.Delete();
-
-
-
-				
 		}
 
 		return;
 	}
-	
 
 	m_InstancedShader.Activate();
-	//if modifed is true, updaet vbo
+	
+	// If modifed is true, update vbo
 	if (m_modified) {
-		//add all chunks transformation together
+		
+		// Add all chunks transformation together
 		m_transforms.clear();
 
 		for (const auto& [key, chunk] : m_Chunks) {
@@ -529,12 +503,12 @@ void VoxelManager::DrawVoxel(const glm::mat4& vp, const glm::vec4& color, GLenum
 
 	if (mode == GL_LINES) {
 
-		//draw sold
+		// Draw sold
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		m_InstancedQuad->Draw(GL_TRIANGLES);
 
-		//draw wireframe
-		m_InstancedShader.setUniform("uniform_color", glm::vec4{ 0.f,0.f,0.f,1.f });
+		// Draw wireframe
+		m_InstancedShader.setUniform("uniform_color", glm::vec4{ 0.f, 0.f, 0.f, 1.f });
 		glEnable(GL_POLYGON_OFFSET_LINE);
 		glPolygonOffset(-1.0f, -1.0f);
 
@@ -551,8 +525,7 @@ void VoxelManager::DrawVoxel(const glm::mat4& vp, const glm::vec4& color, GLenum
 	
 }
 
-void VoxelManager::deleteChunk(int key)
-{
+void VoxelManager::DeleteChunk(int key) {
 	if (m_Chunks.find(key) != m_Chunks.end()) {
 		m_Chunks.erase(key);
 		m_ChunkMarchingMesh.clear();
@@ -563,22 +536,18 @@ void VoxelManager::deleteChunk(int key)
 	}
 }
 
-void VoxelManager::clearVoxel()
-{
+void VoxelManager::ClearVoxel() {
 	std::vector<int> keysToDelete;
 	for (const auto& chunk : m_Chunks) {
 		keysToDelete.push_back(chunk.first);
 	}
 
 	for (int key : keysToDelete) {
-		deleteChunk(key);
+		DeleteChunk(key);
 	}
 }
 
-
-
-std::vector<Quad> Chunks::GenerateQuadsGreedy()
-{
+std::vector<Quad> Chunks::GenerateQuadsGreedy() {
 	std::vector<Quad> quads;
 
 	// Process each face direction
@@ -605,7 +574,6 @@ std::vector<Quad> Chunks::GenerateQuadsGreedy()
 			break;
 		}
 
-
 		for (int depth = 0; depth < depth_size; depth++) {
 			// Create a mask for this slice
 			std::vector<BlockType> mask(plane_size1 * plane_size2, EMPTY);
@@ -620,7 +588,7 @@ std::vector<Quad> Chunks::GenerateQuadsGreedy()
 					coords[plane_coord2] = p2;
 					int x = coords[0], y = coords[1], z = coords[2];
 
-					if (shouldRenderFace(x, y, z, face)) {
+					if (ShouldRenderFace(x, y, z, face)) {
 						mask[p1 + p2 * plane_size1] = at(x, y, z);
 					}
 					else {
@@ -670,7 +638,6 @@ std::vector<Quad> Chunks::GenerateQuadsGreedy()
 						quad.x = block_coords[0];
 						quad.y = block_coords[1];
 						quad.z = block_coords[2];
-
 						
 						switch (face) {
 						case 0: // +X face
@@ -712,14 +679,9 @@ std::vector<Quad> Chunks::GenerateQuadsGreedy()
 	return quads;
 }
 
-
-void Chunks::Update(RenderType type)
-{
-	
-
+void Chunks::Update(RenderType type) {
 	if (type == MARCHING_CUBE) {
 		// Generate vertices using Marching Cubes algorithm
-		
 	}
 	else {
 		// Chunk exists, update it
@@ -733,31 +695,27 @@ void Chunks::Update(RenderType type)
 			quads = GenerateQuads();
 		}
 
-
 		float scaleFactor =GetScale(); // Scale factor for the cubes
 		glm::vec3 chunkPosition = GetPosition();
 
 		for (const auto& quad : quads) {
-
-			//Chunk transformation
+			
+			// Chunk transformation
 			glm::mat4 model = glm::mat4(1.f);
 			model = glm::translate(model, chunkPosition);
 			model = glm::scale(model, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
 
-
 			glm::vec3 faceOffset;
 			switch (quad.face) {
-			case 0: faceOffset = glm::vec3(0.5f, 0.5f * (quad.height - 1), 0.5f * (quad.width - 1)); break; // +X
+			case 0: faceOffset = glm::vec3(0.5f, 0.5f * (quad.height - 1), 0.5f * (quad.width - 1));  break; // +X
 			case 1: faceOffset = glm::vec3(-0.5f, 0.5f * (quad.height - 1), 0.5f * (quad.width - 1)); break; // -X
-			case 2: faceOffset = glm::vec3(0.5f * (quad.width - 1), 0.5f, 0.5f * (quad.height - 1)); break; // +Y
+			case 2: faceOffset = glm::vec3(0.5f * (quad.width - 1), 0.5f, 0.5f * (quad.height - 1));  break; // +Y
 			case 3: faceOffset = glm::vec3(0.5f * (quad.width - 1), -0.5f, 0.5f * (quad.height - 1)); break; // -Y
-			case 4: faceOffset = glm::vec3(0.5f * (quad.width - 1), 0.5f * (quad.height - 1), 0.5f); break; // +Z
+			case 4: faceOffset = glm::vec3(0.5f * (quad.width - 1), 0.5f * (quad.height - 1), 0.5f);  break; // +Z
 			case 5: faceOffset = glm::vec3(0.5f * (quad.width - 1), 0.5f * (quad.height - 1), -0.5f); break; // -Z
 			}
 
-
 			model = glm::translate(model, glm::vec3(quad.x, quad.y, quad.z) + faceOffset);
-
 
 			switch (quad.face) {
 			case 0: // +X face (right)
@@ -773,7 +731,6 @@ void Chunks::Update(RenderType type)
 				model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1, 0, 0));
 				break;
 			case 4: // +Z face (front)
-
 				break;
 			case 5: // -Z face (back)
 				model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 1, 0));
@@ -785,29 +742,23 @@ void Chunks::Update(RenderType type)
 
 			m_transforms.emplace_back(model);
 		}
-
-
 	}
 }
 
+MarchingCube Chunks::GenerateVertices() {
 
-
-
-MarchingCube Chunks::GenerateVertices()
-{
-
-	//For reference
+	// For reference
 	//      y
-	 //     |
-	 //     4--------5
-	 //    /|       /|
-	 //   7--------6 |
-	 //   | |      | |
-	 //   | 0------|-1 --> x
-	 //   |/       |/
-	 //   3--------2
-	 //  /
-	 //	z
+	//      |
+	//      4--------5
+	//     /|       /|
+	//    7--------6 |
+	//    | |      | |
+	//    | 0------|-1 --> x
+	//    |/       |/
+	//    3--------2
+	//   /
+	//	z
 
 	MarchingCube marchingCube;
 	marchingCube.position = GetPosition();
@@ -820,7 +771,7 @@ MarchingCube Chunks::GenerateVertices()
 	marchingCube.vertices.reserve(m_Width * m_Height * m_Depth * 8);
 	int countVertex = 0;
 
-	// get the chunk pos based on the bottom left;
+	// Get the chunk pos based on the bottom left;
 	glm::vec3 chunkSize = glm::vec3{ (float)GetWidth(), (float)GetHeight(), (float)GetDepth() };
 	glm::vec3 pos = GetPosition();
 	glm::vec3 chunkPos = GetPosition() - glm::vec3(0.5 * m_ScaleFactor) + (chunkSize / 2.f);
@@ -828,46 +779,30 @@ MarchingCube Chunks::GenerateVertices()
 	for (int x = 0; x < m_Width; ++x) {
 		for (int y = 0; y < m_Height; ++y) {
 			for (int z = 0; z < m_Depth; ++z) {
-
-
-				//if (x >= m_Width - 1 || y >= m_Height- 1 || z >= m_Depth - 1) {
-				//	continue;
-				//}
-
-
-				//retrieve the corners of the cube
-
 				std::array<glm::vec3, 8> cubeCorners;
-
-
 
 				for (int i = 0; i < 8; ++i) {
 					int cx = x + static_cast<int>(cornerOffsets[i].x);
 					int cy = y + static_cast<int>(cornerOffsets[i].y);
 					int cz = z + static_cast<int>(cornerOffsets[i].z);
-
 				
 					glm::vec3 localOffset = glm::vec3(cx, cy, cz);
-					//cubeCorners[i] = chunkPos + localOffset * m_ScaleFactor;
 					cubeCorners[i] = localOffset;
 				}
 
-
 				unsigned int lookUpIndex = 0;
 
-				if (isSolid(x, y, z))         lookUpIndex |= 0b00000001; // Corner 0
-				if (isSolid(x + 1, y, z))     lookUpIndex |= 0b00000010; // Corner 1
-				if (isSolid(x + 1, y, z + 1)) lookUpIndex |= 0b00000100; // Corner 2
-				if (isSolid(x, y, z + 1))     lookUpIndex |= 0b00001000; // Corner 3
-				if (isSolid(x, y + 1, z))     lookUpIndex |= 0b00010000; // Corner 4
-				if (isSolid(x + 1, y + 1, z)) lookUpIndex |= 0b00100000; // Corner 5
-				if (isSolid(x + 1, y + 1, z + 1)) lookUpIndex |= 0b01000000; // Corner 6
-				if (isSolid(x, y + 1, z + 1)) lookUpIndex |= 0b10000000; // Corner 7
+				if (IsSolid(x, y, z))			  lookUpIndex |= 0b00000001; // Corner 0
+				if (IsSolid(x + 1, y, z))		  lookUpIndex |= 0b00000010; // Corner 1
+				if (IsSolid(x + 1, y, z + 1))	  lookUpIndex |= 0b00000100; // Corner 2
+				if (IsSolid(x, y, z + 1))		  lookUpIndex |= 0b00001000; // Corner 3
+				if (IsSolid(x, y + 1, z))		  lookUpIndex |= 0b00010000; // Corner 4
+				if (IsSolid(x + 1, y + 1, z))	  lookUpIndex |= 0b00100000; // Corner 5
+				if (IsSolid(x + 1, y + 1, z + 1)) lookUpIndex |= 0b01000000; // Corner 6
+				if (IsSolid(x, y + 1, z + 1))	  lookUpIndex |= 0b10000000; // Corner 7
 
 				const int* edge = triTable[lookUpIndex];
 				for (int n{}; edge[n] != -1; n += 3) {
-					
-
 					int a0 = cornerIndexAFromEdge[triTable[lookUpIndex][n]];
 					int b0 = cornerIndexBFromEdge[triTable[lookUpIndex][n]];
 
@@ -876,8 +811,6 @@ MarchingCube Chunks::GenerateVertices()
 
 					int a2 = cornerIndexAFromEdge[triTable[lookUpIndex][n + 2]];
 					int b2 = cornerIndexBFromEdge[triTable[lookUpIndex][n + 2]];
-
-
 
 					glm::vec3 v0 = glm::mix(cubeCorners[a0], cubeCorners[b0], isoLevel);
 					glm::vec3 v1 = glm::mix(cubeCorners[a1], cubeCorners[b1], isoLevel);
@@ -894,22 +827,13 @@ MarchingCube Chunks::GenerateVertices()
 
 					countVertex += 3;
 				}
-
-
-
-
-
-
 			}
 		}
 	}
-
-
 	
 	return marchingCube;
 }
 
-void Chunks::FillChunk(BlockType type)
-{
+void Chunks::FillChunk(BlockType type) {
 	std::fill(m_Blocks.begin(), m_Blocks.end(), type); // Fill the entire chunk with the specified block type
 }

@@ -3,29 +3,15 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-
 namespace window {
-
-
-	class Window
-	{
+	class Window {
 	public:
 		Window();
 		~Window();
 
-		int getWindowWidth();
-		int getWindowHeigth();
-
-	private:
-
-
-	public:
+		int GetWindowWidth();
+		int GetWindowHeigth();
 
 		GLFWwindow* window;
-
 	};
 }
-
-
-
-
