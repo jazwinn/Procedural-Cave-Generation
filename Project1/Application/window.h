@@ -12,6 +12,8 @@ namespace window {
 		int GetWindowWidth();
 		int GetWindowHeigth();
 
+
+
 		GLFWwindow* window;
 	};
 }
